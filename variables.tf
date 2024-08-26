@@ -5,15 +5,18 @@
 variable "aws_role" {
   description = "ARN of the role we use to run the terraform"
   type        = string
+  default     = ""
 }
 variable "project" {
   description = "Name of the project - this is used to generate names for resources"
   type        = string
+  default     = "hyperspace"
 }
 
 variable "environment" {
   description = "The environment we are creating - used to generate names for resource"
   type        = string
+  default     = "development"
 }
 
 variable "tags" {
@@ -27,6 +30,7 @@ variable "tags" {
 variable "aws_region" {
   description = "This is used to define where resources are created and used"
   type        = string
+  default     = "us-east-1"
 }
 
 
@@ -38,6 +42,7 @@ variable "aws_region" {
 variable "vpc_cidr" {
   description = "Cidr of the vpc we will create in the format of X.X.X.X/16"
   type        = string
+  default     = "10.10.100.0/16"
 }
 
 variable "num_zones" {
@@ -55,6 +60,7 @@ variable "availability_zones" {
 variable "enable_nat_gateway" {
   description = "Dictates if nat gateway is enabled or not"
   type        = bool
+  default     = true
 }
 
 variable "single_nat_gateway" {
@@ -72,9 +78,11 @@ variable "create_vpc_flow_logs" {
 variable "flow_logs_retention" {
   description = "vpc flow logs retention in days"
   type        = number
+  default     = 14
 }
 
 variable "flow_log_group_class" {
   description = "vpc flow logs log group class in cloudwatch"
   type        = string
+  default     = "value"
 }

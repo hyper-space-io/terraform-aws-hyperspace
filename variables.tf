@@ -80,3 +80,20 @@ variable "flow_log_group_class" {
   type        = string
   default     = "value"
 }
+
+
+##################
+# Route53
+##################
+
+variable "domain_name" {
+  description = "The domain name to create if we don't have an existing domain configured"
+  type        = string
+  default     = ""
+}
+
+variable "existing_zone_id" {
+  description = "The Zone id to use when configuring the internal zone and domains"
+  type        = string
+  default     = ""
+}

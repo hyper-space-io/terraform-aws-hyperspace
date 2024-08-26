@@ -1,3 +1,7 @@
+##############
+# VPC
+##############
+
 module "vpc" {
   source                                          = "terraform-aws-modules/vpc/aws"
   version                                         = "~>5.13.0"
@@ -60,4 +64,47 @@ module "endpoints" {
     }
   }
   tags = var.tags
+}
+
+##############
+# Route53
+##############
+
+resource "aws_route53_zone" "internal_domain" {
+  count = var.domain_name != "" ? 1 : 0
+  name  = local.internal_domain_name
+}
+
+resource "aws_route53_record" "internal_domain_ns" {
+  count = local.create_records
+
+  zone_id = var.existing_zone_id
+  name    = local.internal_domain_name
+  type    = "NS"
+  ttl     = "30"
+  records = aws_route53_zone.internal_domain.0.name_servers
+}
+
+resource "aws_route53_record" "wildcard" {
+  count   = local.create_records
+  zone_id = var.existing_zone_id
+  name    = "*"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_ingress_v1.ingress.status.0.load_balancer.0.ingress.0.hostname]
+  depends_on = [
+    helm_release.nginx-ingress
+  ]
+}
+
+resource "aws_route53_record" "internal_wildcard" {
+  count   = local.create_records
+  zone_id = aws_route53_zone.internal_domain.0.zone_id
+  name    = "*"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_ingress_v1.internal_ingress.status.0.load_balancer.0.ingress.0.hostname]
+  depends_on = [
+    helm_release.nginx-ingress
+  ]
 }

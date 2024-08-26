@@ -2,11 +2,6 @@
 # GENERAL
 ########################
 
-variable "aws_role" {
-  description = "ARN of the role we use to run the terraform"
-  type        = string
-  default     = ""
-}
 variable "project" {
   description = "Name of the project - this is used to generate names for resources"
   type        = string
@@ -32,7 +27,6 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
-
 
 
 ########################

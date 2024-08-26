@@ -4,8 +4,8 @@ module "vpc" {
   name                                            = "${var.project}-${var.environment}-vpc"
   cidr                                            = var.vpc_cidr
   azs                                             = length(var.availability_zones) == 0 ? local.availability_zones : var.availability_zones
-  private_subnets                                 = slice(local.private_subnets, 0, var.num_zones)
-  public_subnets                                  = slice(local.public_subnets, 0, var.num_zones)
+  private_subnets                                 = local.private_subnets
+  public_subnets                                  = local.public_subnets
   create_database_subnet_group                    = false
   enable_nat_gateway                              = var.enable_nat_gateway
   single_nat_gateway                              = var.single_nat_gateway

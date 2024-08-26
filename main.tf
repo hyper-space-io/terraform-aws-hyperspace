@@ -35,6 +35,7 @@ module "endpoints" {
   source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
 
   vpc_id                     = module.vpc.vpc_id
+  subnet_ids                 = module.vpc.private_subnets
   create_security_group      = true
   security_group_name_prefix = var.project
   security_group_description = "VPC endpoint security group"
@@ -48,12 +49,14 @@ module "endpoints" {
 
   endpoints = {
     s3 = {
-      service = "s3"
+      service             = "s3"
       private_dns_enabled = true
       dns_options = {
         private_dns_only_for_inbound_resolver_endpoint = false
       }
-      tags = var.tags
+      tags = merge(var.tags, {
+        Name = "Hyperspace S3 Endpoint"
+      })
     }
   }
   tags = var.tags

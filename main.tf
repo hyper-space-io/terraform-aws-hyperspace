@@ -30,3 +30,31 @@ module "vpc" {
   }
   tags = var.tags
 }
+
+module "endpoints" {
+  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+
+  vpc_id                     = module.vpc.vpc_id
+  create_security_group      = true
+  security_group_name_prefix = var.project
+  security_group_description = "VPC endpoint security group"
+
+  security_group_rules = {
+    ingress_https = {
+      description = "HTTPS from VPC"
+      cidr_blocks = [module.vpc.vpc_cidr_block]
+    }
+  }
+
+  endpoints = {
+    s3 = {
+      service = "s3"
+      private_dns_enabled = true
+      dns_options = {
+        private_dns_only_for_inbound_resolver_endpoint = false
+      }
+      tags = var.tags
+    }
+  }
+  tags = var.tags
+}

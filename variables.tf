@@ -48,7 +48,7 @@ variable "num_zones" {
 
 variable "availability_zones" {
   description = "List of availablity zones to deploy the resources"
-  type        = list()
+  type        = list(string)
   default     = []
 }
 

@@ -1,3 +1,4 @@
+# NETWORKING
 module "vpc" {
   source                                          = "terraform-aws-modules/vpc/aws"
   version                                         = "~>5.13.0"
@@ -31,6 +32,7 @@ module "vpc" {
   }
   tags = var.tags
 }
+
 
 module "endpoints" {
   source                     = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"

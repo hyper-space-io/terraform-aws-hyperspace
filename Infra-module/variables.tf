@@ -15,11 +15,8 @@ variable "environment" {
 }
 
 variable "tags" {
-  type = map(any)
-  default = {
-    terraform  = true
-    hyperspace = true
-  }
+  type        = map(any)
+  default     = {}
   description = "List of tags to assign to resources created in this module"
 }
 
@@ -133,8 +130,8 @@ variable "worker_instance_type" {
   type    = list(string)
   default = ["m5n.xlarge"]
   validation {
-    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge']."
+    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge", "m5n.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
   }
   description = "The list of allowed instance types for worker nodes."
 }

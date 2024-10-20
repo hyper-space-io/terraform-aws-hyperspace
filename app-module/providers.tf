@@ -1,14 +1,14 @@
 provider "kubernetes" {
   host                   = local.eks_module.cluster_endpoint
   cluster_ca_certificate = base64decode(local.eks_module.cluster_certificate_authority_data)
-  token                  = data.terraform_remote_state.infra.outputs.eks_token
+  token                  = data.aws_eks_cluster_auth.eks.token
 }
 
 provider "helm" {
   kubernetes {
     host                   = local.eks_module.cluster_endpoint
     cluster_ca_certificate = base64decode(local.eks_module.cluster_certificate_authority_data)
-    token                  = data.terraform_remote_state.infra.outputs.eks_token
+    token                  = data.aws_eks_cluster_auth.eks.token
   }
 }
 

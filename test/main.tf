@@ -5,4 +5,5 @@ module "infra" {
   environment = "dev-idan"
   flow_log_group_class = "INFREQUENT_ACCESS"
   worker_instance_type = ["m5n.large"]
+  vpc_cidr = "10.11.0.0/16"
 }

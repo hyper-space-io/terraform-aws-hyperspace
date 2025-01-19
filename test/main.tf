@@ -1,5 +1,5 @@
 module "infra" {
-  source = "git@github.com:Hyperspace-terraform-module/Infra-module.git?ref=setup-cluster-tools"
+  source = "github.com/hyper-space-io/Hyperspace-terraform-module?ref=setup-cluster-tools"
   dex_connectors = jsonencode([
   {
     type = "github"

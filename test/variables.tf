@@ -1,4 +1,4 @@
 variable "dex_connectors" {
-  type = string
-  default = ""
+  type = list(any)
+  default = []
 }

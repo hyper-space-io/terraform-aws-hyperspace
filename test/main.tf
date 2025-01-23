@@ -1,5 +1,5 @@
 module "infra" {
-  source = "github.com/hyper-space-io/Hyperspace-terraform-module/Infra-module?ref=privateLink"
+  source = "github.com/hyper-space-io/Hyperspace-terraform-module/Infra-module?ref=setup-cluster-tools"
   dex_connectors = var.dex_connectors
   domain_name = "hyper-space.xyz"
   environment = "dev-idan"

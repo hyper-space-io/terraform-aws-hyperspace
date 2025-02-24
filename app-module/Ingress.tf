@@ -24,7 +24,7 @@ locals {
 }
 
 resource "helm_release" "nginx-ingress" {
-  for_each         = local.eks_exists ? local.combined_ingress_config : {}
+  for_each         = var.create_eks ? local.combined_ingress_config : {}
   name             = "ingress-nginx-${each.key}"
   chart            = "ingress-nginx"
   version          = "~> 4.11.2"
@@ -117,19 +117,19 @@ controller:
           topologyKey: "kubernetes.io/hostname"
   EOF
   ]
-  depends_on = [module.eks_blueprints_addons, module.acm]
+  depends_on = [module.eks_blueprints_addons, module.acm, module.eks]
 }
 
 
 resource "kubernetes_ingress_v1" "nginx_ingress" {
-  for_each = local.eks_exists ? local.combined_ingress_config : {}
+  for_each = var.create_eks ? local.combined_ingress_config : {}
   metadata {
     name      = "${each.key}-ingress"
     namespace = "ingress"
     annotations = merge({
       "alb.ingress.kubernetes.io/certificate-arn"          = local.create_acm ? (each.key == "internal" ? module.acm["internal_acm"].acm_certificate_arn : module.acm["external_acm"].acm_certificate_arn) : ""
       "alb.ingress.kubernetes.io/scheme"                   = "${each.value.scheme}"
-      "alb.ingress.kubernetes.io/load-balancer-attributes" = "idle_timeout.timeout_seconds=600, access_logs.s3.enabled=true, access_logs.s3.bucket=${local.s3_buckets["logs-ingress"].s3_bucket_id},access_logs.s3.prefix=${each.value.s3_prefix}"
+      "alb.ingress.kubernetes.io/load-balancer-attributes" = "idle_timeout.timeout_seconds=600, access_logs.s3.enabled=true, access_logs.s3.bucket=${local.s3_bucket_names["logs-ingress"]},access_logs.s3.prefix=${each.value.s3_prefix}"
       "alb.ingress.kubernetes.io/actions.ssl-redirect" = (each.key == "internal" && module.acm["internal_acm"].acm_certificate_arn != "") || (each.key == "external" && var.create_public_zone && var.domain_name != "") ? jsonencode({
         Type = "redirect"
         RedirectConfig = {
@@ -181,7 +181,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
       }
     }
   }
-  depends_on = [helm_release.nginx-ingress]
+  depends_on = [helm_release.nginx-ingress, module.eks]
 }
 
 resource "time_sleep" "wait_for_internal_ingress" {

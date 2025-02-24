@@ -24,8 +24,8 @@ variable "aws_region" {
   type    = string
   default = "us-east-1"
   validation {
-    condition     = contains(["us-east-1", "us-west-1", "eu-west-1"], var.aws_region)
-    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, eu-west-1, eu-central-1]."
+    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1"], var.aws_region)
+    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1]."
   }
   description = "This is used to define where resources are created and used"
 }
@@ -110,12 +110,6 @@ variable "create_eks" {
   description = "Should we create the eks cluster?"
 }
 
-variable "tfc_agent_token" {
-  type        = string
-  sensitive   = true
-  description = "The token to use in the user_data script"
-}
-
 variable "worker_nodes_max" {
   type    = number
   default = 10
@@ -134,4 +128,36 @@ variable "worker_instance_type" {
     error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
   }
   description = "The list of allowed instance types for worker nodes."
+}
+
+# Auto-scaling
+variable "enable_cluster_autoscaler" {
+  description = "should we enable and install cluster-autoscaler"
+  type        = bool
+  default     = true
+}
+
+# APP MODULE
+variable "create_public_zone" {
+  description = "Whether to create the public Route 53 zone"
+  type        = bool
+  default     = false
+}
+
+variable "enable_ha_argocd" {
+  description = "should we install argocd in ha mode"
+  type        = bool
+  default     = false
+}
+
+variable "dex_connectors" {
+  type = list(any)
+  default     = []
+  description = "List of Dex connector configurations"
+}
+
+variable "domain_name" {
+  description = "The main domain name to use to create sub-domains"
+  type        = string
+  default     = ""
 }

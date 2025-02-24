@@ -22,7 +22,7 @@ module "s3_buckets" {
     rule = {
       apply_server_side_encryption_by_default = {
         sse_algorithm = "AES256"
-      }}} : {}
+  } } } : {}
   tags = merge(local.tags, {
     Name = lower("${var.project}-${var.environment}-${each.key}-${random_string.random[each.key].result}")
   })
@@ -70,6 +70,16 @@ locals {
           days = 365
       } }]
     }
+    core-dump-logs = {
+      lifecycle_rule = [{
+        id      = "expire-after-one-year"
+        enabled = true
+        expiration = {
+          days = 365
+      } }]
+    }
+    velero = {}
+    loki   = {}
   }
   s3_buckets = { for name, config in local.s3_config : name => merge(local.s3_default_config, config) }
 }

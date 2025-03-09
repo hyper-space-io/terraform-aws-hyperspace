@@ -68,8 +68,7 @@ sudo docker run -d \
     --name=terraform-agent \
     --restart=unless-stopped \
     -e TFC_AGENT_TOKEN=${tfc_agent_token} \
-    hashicorp/tfc-agent:latest -v /usr/local/aws-cli:/usr/local/aws-cli:ro \
-    -v /bin/aws:/bin/aws:ro || echo "Failed to start Terraform Cloud Agent container."
+    hashicorp/tfc-agent:latest || echo "Failed to start Terraform Cloud Agent container."
 EOF
 sudo docker exec -u root terraform-agent sh -c "apt-get install -y unzip curl && \
     curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o awscliv2.zip && \

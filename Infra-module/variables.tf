@@ -1,5 +1,6 @@
 ########################
 # GENERAL
+
 ########################
 
 variable "project" {
@@ -36,12 +37,12 @@ variable "aws_region" {
 
 variable "vpc_cidr" {
   type    = string
-  default = "10.10.100.0/16"
+  default = "10.10.0.0/16"
   validation {
     condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/(\\d{1,2})$", var.vpc_cidr))
     error_message = "The VPC CIDR must be a valid CIDR block in the format X.X.X.X/XX."
   }
-  description = "CIDR block for the VPC (e.g., 10.10.100.0/16) - defines the IP range for resources within the VPC."
+  description = "CIDR block for the VPC (e.g., 10.10.0.0/16) - defines the IP range for resources within the VPC."
 }
 
 variable "num_zones" {
@@ -86,7 +87,7 @@ variable "flow_logs_retention" {
 
 variable "flow_log_group_class" {
   type        = string
-  default     = ""
+  default     = "STANDARD"
   description = "VPC flow logs log group class in CloudWatch. Leave empty for default or provide a specific class."
 }
 
@@ -151,7 +152,7 @@ variable "enable_ha_argocd" {
 }
 
 variable "dex_connectors" {
-  type = list(any)
+  type        = list(any)
   default     = []
   description = "List of Dex connector configurations"
 }

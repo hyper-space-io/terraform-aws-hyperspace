@@ -1,8 +1,29 @@
+#######################
+######## AWS ##########
+#######################
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
 data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+#######################
+### Terraform Cloud ###
+#######################
+
+data "tfe_organizations" "all" {}
+
+data "tfe_workspace" "current" {
+  name         = terraform.workspace
+  organization = data.tfe_organizations.all.names[0]
+}
+
+#######################
+######### EC2 #########
+#######################
 
 data "aws_ami" "amazon_linux_2" {
   most_recent = true
@@ -17,7 +38,25 @@ data "aws_ami" "amazon_linux_2" {
   }
 }
 
-# FPGA pull access for EC2
+data "aws_ami" "fpga" {
+  owners     = ["337450623971"]
+  name_regex = "eks-1\\.31-fpga-prod"
+}
+
+data "aws_iam_policy_document" "ec2_tags_control" {
+  statement {
+    sid = "EC2TagsAccess"
+    actions = [
+      "ec2:DescribeTags",
+      "ec2:CreateTags"
+    ]
+    resources = [
+      "arn:aws:ec2:*:*:instance/*"
+    ]
+    effect = "Allow"
+  }
+}
+
 data "aws_iam_policy_document" "fpga_pull_access" {
   statement {
     sid = "PullAccessAGFI"
@@ -39,7 +78,10 @@ data "aws_iam_policy_document" "fpga_pull_access" {
   }
 }
 
-# Cluster Autoscaler
+#######################
+######### EKS #########
+#######################
+
 data "aws_iam_policy_document" "cluster_autoscaler" {
   statement {
     sid = "AutoscalingWrite"
@@ -90,6 +132,9 @@ data "aws_iam_policy_document" "cluster_autoscaler" {
   }
 }
 
+#######################
+######### S3 ##########
+#######################
 data "aws_iam_policy_document" "core_dump_s3_full_access" {
   statement {
     sid = "FullAccessS3CoreDump"
@@ -118,20 +163,9 @@ data "aws_iam_policy_document" "velero_s3_full_access" {
   }
 }
 
-data "aws_iam_policy_document" "ec2_tags_control" {
-  statement {
-    sid = "EC2TagsAccess"
-    actions = [
-      "ec2:DescribeTags",
-      "ec2:CreateTags"
-    ]
-    resources = [
-      "arn:aws:ec2:*:*:instance/*"
-    ]
-    effect = "Allow"
-  }
-}
-
+#######################
+####### Loki ##########
+#######################
 data "aws_iam_policy_document" "loki_s3_dynamodb_full_access" {
   statement {
     actions = [
@@ -198,6 +232,9 @@ data "aws_iam_policy_document" "loki_s3_dynamodb_full_access" {
   }
 }
 
+#######################
+## Secrets Manager ####
+#######################
 data "aws_iam_policy_document" "secrets_manager" {
   statement {
     sid = "secretsmanager"
@@ -272,17 +309,4 @@ data "aws_iam_policy_document" "kms" {
       values   = ["true"]
     }
   }
-}
-
-data "aws_ami" "fpga" {
-  owners     = ["337450623971"]
-  name_regex = "eks-1\\.31-fpga-prod"
-}
-
-data "tfe_organizations" "all" {}
-
-# First get the current workspace
-data "tfe_workspace" "current" {
-  name         = terraform.workspace
-  organization = data.tfe_organizations.all.names[0]
 }

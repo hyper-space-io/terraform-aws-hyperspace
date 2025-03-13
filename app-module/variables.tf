@@ -1,4 +1,19 @@
-# variables.tf
+###############################
+########## Global #############
+###############################
+
+variable "project" {
+  type        = string
+  default     = "hyperspace"
+  description = "Name of the project - this is used to generate names for resources"
+}
+
+variable "environment" {
+  type        = string
+  default     = "development"
+  description = "The environment we are creating - used to generate names for resource"
+}
+
 variable "organization" {
   description = "Terraform Cloud organization name"
   type        = string
@@ -9,7 +24,26 @@ variable "infra_workspace_name" {
   type        = string
 }
 
-# Routing
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+  validation {
+    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1"], var.aws_region)
+    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1]."
+  }
+  description = "This is used to define where resources are created and used"
+}
+
+variable "tags" {
+  type        = string
+  default     = ""
+  description = "List of tags to assign to resources created in this module"
+}
+
+###############################
+######### Route53 #############
+###############################
+
 variable "domain_name" {
   description = "The main domain name to use to create sub-domains"
   type        = string
@@ -22,14 +56,46 @@ variable "create_public_zone" {
   default     = false
 }
 
-# Auto-scaling
+###############################
+############ EKS ##############
+###############################
+
+variable "create_eks" {
+  type        = bool
+  default     = true
+  description = "Should we create the eks cluster?"
+}
+
 variable "enable_cluster_autoscaler" {
   description = "should we enable and install cluster-autoscaler"
   type        = bool
   default     = true
 }
 
-# ArgoCD
+variable "worker_nodes_max" {
+  type    = number
+  default = 10
+  validation {
+    condition     = var.worker_nodes_max > 0
+    error_message = "Invalid input for 'worker_nodes_max'. The value must be a number greater than 0."
+  }
+  description = "The maximum amount of worker nodes you can allow"
+}
+
+variable "worker_instance_type" {
+  type    = string
+  default = "[m5n.xlarge]"
+  validation {
+    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
+  }
+  description = "The list of allowed instance types for worker nodes."
+}
+
+###############################
+########## ArgoCD #############
+###############################
+
 variable "enable_argocd" {
   description = "should we enable and install argocd"
   type        = bool
@@ -60,42 +126,14 @@ variable "argocd_rbac_policy_rules" {
   default     = []
 }
 
-variable "project" {
+###############################
+########### VPC ###############
+###############################
+
+variable "vpc_module" {
   type        = string
-  default     = "hyperspace"
-  description = "Name of the project - this is used to generate names for resources"
-}
-
-variable "environment" {
-  type        = string
-  default     = "development"
-  description = "The environment we are creating - used to generate names for resource"
-}
-
-variable "create_eks" {
-  type        = bool
-  default     = true
-  description = "Should we create the eks cluster?"
-}
-
-variable "worker_nodes_max" {
-  type    = number
-  default = 10
-  validation {
-    condition     = var.worker_nodes_max > 0
-    error_message = "Invalid input for 'worker_nodes_max'. The value must be a number greater than 0."
-  }
-  description = "The maximum amount of worker nodes you can allow"
-}
-
-variable "worker_instance_type" {
-  type    = string
-  default = "[m5n.xlarge]"
-  validation {
-    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
-  }
-  description = "The list of allowed instance types for worker nodes."
+  default     = ""
+  description = "The VPC module to use for the resources"
 }
 
 variable "availability_zones" {
@@ -104,33 +142,9 @@ variable "availability_zones" {
   description = "List of availability zones to deploy the resources. Leave empty to automatically select based on the region and the variable num_zones."
 }
 
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
-  validation {
-    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1"], var.aws_region)
-    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1]."
-  }
-  description = "This is used to define where resources are created and used"
-}
-
-variable "data_node_ami_id" {
-  type        = string
-  default     = ""
-  description = "The AMI ID to use for the data nodes"
-}
-
-variable "tags" {
-  type        = string
-  default     = ""
-  description = "List of tags to assign to resources created in this module"
-}
-
-variable "vpc_module" {
-  type        = string
-  default     = ""
-  description = "The VPC module to use for the resources"
-}
+###############################
+############ S3 ###############
+###############################
 
 variable "s3_buckets_names" {
   type        = string
@@ -143,6 +157,10 @@ variable "s3_buckets_arns" {
   default     = ""
   description = "The S3 buckets to use for the resources"
 }
+
+###############################
+############ IAM ##############
+###############################
 
 variable "iam_policies" {
   type        = string

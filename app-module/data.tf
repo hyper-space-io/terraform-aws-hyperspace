@@ -1,3 +1,7 @@
+#######################
+#### Terraform Cloud ##
+#######################
+
 data "terraform_remote_state" "infra" {
   backend = "remote"
 
@@ -8,6 +12,10 @@ data "terraform_remote_state" "infra" {
     }
   }
 }
+
+#######################
+######## EKS ##########
+#######################
 
 data "kubernetes_storage_class" "name" {
   metadata { name = "gp2" }
@@ -34,6 +42,15 @@ data "aws_eks_cluster_auth" "eks" {
   name       = local.cluster_name
   depends_on = [module.eks]
 }
+
+data "aws_ami" "fpga" {
+  owners     = ["337450623971"]
+  name_regex = "eks-1\\.31-fpga-prod"
+}
+
+#######################
+### Load Balancer #####
+#######################
 
 data "aws_lb" "nlb" {
   tags = {

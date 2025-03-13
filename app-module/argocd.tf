@@ -30,9 +30,9 @@ resource "helm_release" "argocd" {
           "dex.config" = yamlencode({
             connectors = [
               for connector in jsondecode(var.dex_connectors) : {
-                type = connector.type
-                id   = connector.id
-                name = connector.name
+                type   = connector.type
+                id     = connector.id
+                name   = connector.name
                 config = connector.config
               }
             ]
@@ -43,9 +43,9 @@ resource "helm_release" "argocd" {
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-internal" = "true"
-            "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb-ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+            "service.beta.kubernetes.io/aws-load-balancer-internal"               = "true"
+            "service.beta.kubernetes.io/aws-load-balancer-type"                   = "nlb-ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"                 = "internal"
             "service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy" = "ELBSecurityPolicy-TLS13-1-2-2021-06"
           }
         }
@@ -74,4 +74,24 @@ resource "helm_release" "argocd" {
       }
     })
   ]
+}
+
+resource "kubernetes_config_map" "argocd_cm" {
+  count = var.enable_argocd ? 1 : 0
+
+  metadata {
+    name      = "argocd-cm-${var.environment}"
+    namespace = "argocd"
+    labels = {
+      "app.kubernetes.io/name"    = "argocd-cm-${var.environment}"
+      "app.kubernetes.io/part-of" = "argocd"
+    }
+  }
+
+  data = {
+    "accounts.hyperspace"         = "login"
+    "accounts.hyperspace.enabled" = "true"
+  }
+
+  depends_on = [helm_release.argocd]
 }

@@ -42,10 +42,7 @@ else
 fi
 
 # Install AWS CLI v2
-sudo rm -rf /usr/local/aws-cli/
-sudo rm -f /usr/local/bin/aws
-sudo rm -f /usr/local/bin/aws_completer
-sudo rm -f /bin/aws
+sudo rm -rf /usr/local/aws-cli/ /usr/local/bin/aws /usr/local/bin/aws_completer /bin/aws || true
 sudo yum remove awscli -y
 
 log "Installing AWS CLI v2..."
@@ -60,25 +57,48 @@ sudo ./aws/install --bin-dir /bin || { log "Failed to install AWS CLI."; exit 1;
 log "Cleaning up..."
 rm -rf awscliv2.zip aws || log "Warning: Cleanup of AWS CLI installation files failed."
 
+# Install Kubectl
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/
+enabled=1
+gpgcheck=1
+gpgkey=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/repodata/repomd.xml.key
+EOF
+
+sudo yum install -y kubectl || { log "Failed to install Kubectl."; exit 1; }
+
 # Create and run Terraform Cloud Agent start script
 log "Setting up Terraform Cloud Agent..."
 cat << 'EOF' > /var/lib/cloud/scripts/per-boot/tfc-agent-start.sh
 #!/bin/bash
+
+# Stop and remove existing container if it exists
+sudo docker stop terraform-agent 2>/dev/null || true
+sudo docker rm terraform-agent 2>/dev/null || true
+
+# Run the Terraform Cloud Agent container
 sudo docker run -d \
     --name=terraform-agent \
     --restart=unless-stopped \
     -e TFC_AGENT_TOKEN=${tfc_agent_token} \
-    hashicorp/tfc-agent:latest -v /usr/local/aws-cli:/usr/local/aws-cli:ro \
-    -v /bin/aws:/bin/aws:ro || echo "Failed to start Terraform Cloud Agent container."
-EOF
-sudo docker exec -u root terraform-agent sh -c "apt-get install -y unzip curl && \
+    -e TFC_AGENT_NAME=terraform-agent \
+    hashicorp/tfc-agent:latest || echo "Failed to start Terraform Cloud Agent container."
+
+# Wait for 30 seconds to ensure the container is running
+sleep 30
+
+# Install AWS CLI in container
+sudo docker exec -u root terraform-agent sh -c "apt-get update && \
+    apt-get install -y unzip curl && \
     curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o awscliv2.zip && \
     unzip awscliv2.zip && \
     ./aws/install && \
-    rm -rf aws awscliv2.zip"
+    rm -rf aws awscliv2.zip" || { echo "Failed to install AWS CLI in container" ; exit 1; }
+EOF
+
 chmod +x /var/lib/cloud/scripts/per-boot/tfc-agent-start.sh || { log "Failed to make tfc-agent-start.sh executable."; exit 1; }
 /var/lib/cloud/scripts/per-boot/tfc-agent-start.sh
-
-
 
 log "EC2 setup script completed"

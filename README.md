@@ -1,6 +1,32 @@
 # Hyperspace Terraform Module
 
 ![Hyperspace Architecture](Hyperspace_architecture.png)
+
+## Table of Contents
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Module Structure](#module-structure)
+- [Variables](#variables)
+  - [Infrastructure Module Variables](#infrastructure-module-variables)
+  - [Application Module Variables](#application-module-variables)
+- [Features](#features)
+  - [EKS Cluster](#eks-cluster)
+  - [Networking](#networking)
+  - [Security](#security)
+  - [Monitoring and Logging](#monitoring-and-logging)
+  - [Backup and Disaster Recovery](#backup-and-disaster-recovery)
+  - [GitOps and CI/CD](#gitops-and-cicd)
+- [Outputs](#outputs)
+  - [Infrastructure Module Outputs](#infrastructure-module-outputs)
+  - [Application Module Outputs](#application-module-outputs)
+- [Getting Started](#getting-started)
+- [Important Notes](#important-notes)
+  - [Terraform Cloud Token Setup](#terraform-cloud-token-setup)
+  - [ACM Certificate Validation](#acm-certificate-validation)
+  - [Privatelink](#privatelink)
+  - [Access Your Infrastructure](#access-your-infrastructure)
+
 ## Overview
 
 This Terraform module provides a complete infrastructure setup for the Hyperspace project, including EKS cluster deployment, networking, security configurations, and various application components.
@@ -61,19 +87,18 @@ The module creates a production-ready infrastructure with:
 | project | Name of the project | string | "hyperspace" | no |
 | environment | Deployment environment | string | "development" | no |
 | aws_region | AWS region | string | "us-east-1" | no |
-| vpc_cidr | CIDR block for VPC | string | - | yes |
+| vpc_cidr | CIDR block for the VPC | string | 10.10.0.0/16 | yes |
 | availability_zones | List of AZs | list(string) | [] | no |
-| create_vpc_flow_logs | Enable VPC flow logs | bool | false | no |
 | enable_nat_gateway | Enable NAT Gateway | bool | true | no |
 | single_nat_gateway | Use single NAT Gateway OR one per AZ | bool | false | no |
 | num_zones | Number of AZs to use | number | 2 | no |
-| create_vpc_flow_logs | Create VPC flow logs | bool | false | no |
-| flow_logs_retention | Flow logs retention in days | number | 14 | no |
-| flow_log_group_class | Flow logs log group class in CloudWatch | string | "" | no |
-| flow_log_file_format | Flow logs file format | string | "" | no |
 | create_eks | Create EKS cluster | bool | true | no |
 | worker_nodes_max | Maximum number of worker nodes | number | - | yes |
 | worker_instance_type | List of allowed instance types | list(string) | ["m5n.xlarge"] | no |
+| create_vpc_flow_logs | Enable VPC flow logs | bool | false | no |
+| flow_logs_retention | Flow logs retention in days | number | 14 | no |
+| flow_log_group_class | Flow logs log group class in CloudWatch | string | STANDARD | no |
+| flow_log_file_format | Flow logs file format | string | parquet | no |
 
 
 ### Application Module Variables
@@ -193,25 +218,79 @@ module "hyperspace" {
 }
 ```
 
-## Important Notes
+# Important Notes
 
-1. **ACM Certificate Validation**: During the first deployment, the process will pause for ACM certificate validation. You will need to:
-   - Get the ACM validation records from the AWS Console
-   - Add these CNAME records to your domain's DNS settings
-   - Wait for the certificates to be validated (typically 5-30 minutes)
-   - The deployment will automatically continue once validation is complete
+### Terraform Cloud Token Setup
+To enable the creation of workspaces, agent pools, and agent tokens via the Terraform Enterprise provider, you need to configure a Terraform Cloud API token:
 
-2. **Access Your Infrastructure**: After successful deployment, you can access:
+1. Generate a Terraform Cloud API token:
+   - Log in to your Terraform Cloud account
+   - Go to User Settings > Tokens
+   - Click "Create an API token"
+   - Give it a descriptive name (e.g., "Hyperspace Infrastructure")
+   - Copy the generated token (you won't be able to see it again)
+
+2. Configure the token in your infrastructure workspace:
+   - Navigate to your infrastructure workspace in Terraform Cloud
+   - Go to "Variables" under workspace settings
+   - Click "Add variable"
+   - Configure the variable with these settings:
+     - Key: `TFE_TOKEN`
+     - Value: Your API token
+     - Category: Environment variable
+     - Sensitive: Yes
+
+### ACM Certificate Validation
+During deployment, Terraform will pause for ACM certificate validation:
+
+1. In AWS Console > Certificate Manager, find your pending certificate
+2. Copy the validation record name and value
+3. Create CNAME records in your **public** Route 53 hosted zone:
+   ```
+   Name:  <RANDOM_STRING>.<environment>.<your-domain>
+   Value: _<RANDOM_STRING>.validations.aws.
+   ```
+3. Wait for validation (5-30 minutes)
+4. Terraform will automatically continue once validated
+> **Important**: The CNAME must be created in a public hosted zone, not private. Ensure you include the trailing dot in the Value field.
+
+### Privatelink
+After deploying the infrastructure, you'll need to verify your VPC Endpoint Service by creating a DNS record. 
+This verification allows Hyperspace to establish a secure connection to collect essential metrics from your environment through AWS PrivateLink:
+
+### 1. Get Verification Details
+1. Open AWS Console and navigate to VPC Services
+2. Go to **Endpoint Services** in the left sidebar
+3. Find your endpoint service named `<your-domain>.<environment> ArgoCD Endpoint Service`
+4. In the service details, locate:
+   - **Domain verification name**
+   - **Domain verification value**
+
+### 2. Create DNS Verification Record
+1. In AWS Console, navigate to **Route 53**
+2. Go to **Hosted zones**
+3. Select your public hosted zone
+4. Click **Create record** and configure:
+   - **Record type**: TXT
+   - **Record name**: Paste the domain verification name from step 1
+   - **Value**: Paste the domain verification value from step 1
+   - **TTL**: 1800 seconds (30 minutes)
+5. Click **Create records**
+
+### 3. Wait for Verification
+- In the VPC Endpoint Service console, select your endpoint service
+- Click Actions -> Verify domain ownership for private DNS name
+- The verification process may take up to 30 minutes
+- You can monitor the status in the VPC Endpoint Service console
+- The status will change to "Available" once verification is complete
+
+## Access Your Infrastructure
+After successful deployment, you can access:
    - ArgoCD: `https://argocd.internal-<environment>.<your-domain>`
    - Grafana: `https://grafana.internal-<environment>.<your-domain>`
 
-3. **Initial ArgoCD Password**: Retrieve it using:
+**Initial ArgoCD Password**: Retrieve it using:
    ```bash
    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
    ```
-
-4. **Terraform Cloud Agent**: The Terraform Cloud Agent is deployed to the VPC created by the infrastructure module and is used to manage the app-module.
-
-5. **Terraform cloud token**: In order to manage the app-module from the Infra-module, you need to add the Terraform cloud token to the Infra-module, add a variable called `TFE_TOKEN` and set it to your Terraform cloud token generated from the Terraform Cloud UI in: settings -> API tokens.
-
-For detailed configuration options, refer to the module variables documentation above.
+For detailed configuration options, refer to the [Infrastructure Module Variables](#Infrastructure-Module-Variables).

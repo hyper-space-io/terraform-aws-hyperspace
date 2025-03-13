@@ -40,7 +40,7 @@ data "aws_ami" "amazon_linux_2" {
 
 data "aws_ami" "fpga" {
   owners     = ["418316469434"]
-  name_regex = "eks-1\\.31-fpga-prod"
+  name_regex = "eks-1\\.31-fpga-prod*"
 }
 
 data "aws_iam_policy_document" "ec2_tags_control" {

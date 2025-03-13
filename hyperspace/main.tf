@@ -9,7 +9,7 @@ resource "aws_iam_policy" "policies" {
 
 # KMS
 data "aws_kms_key" "by_alias" {
-  key_id = "arn:aws:kms:${var.aws_region}:418316469434:alias/AMI_CROSS_ACCOUNT"
+  key_id = "arn:aws:kms:${var.aws_region}:418316469434:alias/HYPERSPACE_AMI_KEY"
 }
 
 # Create the KMS grant

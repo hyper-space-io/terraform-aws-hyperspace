@@ -4,8 +4,8 @@ module "eks" {
   create          = var.create_eks
   cluster_name    = local.cluster_name
   cluster_version = "1.31"
-  subnet_ids      = local.vpc_module.private_subnets
-  vpc_id          = local.vpc_module.vpc_id
+  subnet_ids      = module.vpc.private_subnets
+  vpc_id          = module.vpc.vpc_id
   tags            = local.tags
 
   cluster_addons = {
@@ -51,7 +51,7 @@ module "eks" {
       AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
       AmazonEBSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
     }
-    subnets = local.vpc_module.private_subnets
+    subnets = module.vpc.private_subnets
 
     tags = {
       "k8s.io/cluster-autoscaler/enabled"               = "True"
@@ -142,8 +142,8 @@ module "eks" {
       from_port        = 0
       to_port          = 0
       type             = "ingress"
-      cidr_blocks      = [local.vpc_module.vpc_cidr_block]
-      ipv6_cidr_blocks = length(local.vpc_module.vpc_ipv6_cidr_block) > 0 ? [local.vpc_module.vpc_ipv6_cidr_block] : []
+      cidr_blocks      = [module.vpc.vpc_cidr_block]
+      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
   }
 
@@ -227,7 +227,7 @@ resource "kubernetes_storage_class" "ebs_sc_gp3" {
 module "iam_iam-assumable-role-with-oidc" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "~> 5.48.0"
-  for_each                      = { for k, v in local.local_iam_policies : k => v if lookup(v, "create_assumable_role", false) == true }
+  for_each                      = { for k, v in local.iam_policies : k => v if lookup(v, "create_assumable_role", false) == true }
   create_role                   = true
   role_name                     = each.value.name
   provider_url                  = module.eks.cluster_oidc_issuer_url
@@ -237,7 +237,7 @@ module "iam_iam-assumable-role-with-oidc" {
 
 module "boto3_irsa" {
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  for_each  = { for k, v in local.local_iam_policies : k => v if lookup(v, "create_cluster_wide_role", false) == true }
+  for_each  = { for k, v in local.iam_policies : k => v if lookup(v, "create_cluster_wide_role", false) == true }
   role_name = each.value.name
   role_policy_arns = {
     policy = local.iam_policies["${each.key}"].arn
@@ -250,8 +250,4 @@ module "boto3_irsa" {
     }
   }
   depends_on = [module.eks]
-}
-
-output "iam_policies" {
-  value = local.iam_policies
 }

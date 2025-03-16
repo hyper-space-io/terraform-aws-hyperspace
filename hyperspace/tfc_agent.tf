@@ -294,7 +294,7 @@ resource "tfe_agent_pool" "hyperspace-agent-pool" {
 resource "tfe_agent_pool_allowed_workspaces" "hyperspace" {
   agent_pool_id = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool[0].id
   allowed_workspace_ids = concat(
-    data.tfe_agent_pool.existing_pool[0].allowed_workspace_ids,
+    tolist(data.tfe_agent_pool.existing_pool[0].allowed_workspace_ids),
     [data.tfe_workspace.current.id]
   )
 }

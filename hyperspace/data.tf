@@ -316,3 +316,7 @@ data "tfe_agent_pool" "existing_pool" {
   name         = var.existing_agent_pool_name
   organization = data.tfe_organizations.all.names[0]
 }
+
+output "existing_pool" {
+  value = data.tfe_agent_pool.existing_pool
+}

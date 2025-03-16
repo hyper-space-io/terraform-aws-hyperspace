@@ -316,3 +316,9 @@ data "tfe_agent_pool" "existing_pool" {
   name         = var.existing_agent_pool_name
   organization = data.tfe_organizations.all.names[0]
 }
+
+data "kubernetes_storage_class" "gp2" {
+  metadata { name = "gp2" }
+  depends_on = [module.eks]
+}
+

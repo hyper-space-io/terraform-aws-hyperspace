@@ -23,7 +23,7 @@ module "eks" {
       min_size       = 1
       max_size       = var.worker_nodes_max
       desired_size   = 1
-      instance_types = jsondecode(var.worker_instance_type)
+      instance_types = var.worker_instance_type
       capacity_type  = "ON_DEMAND"
       labels         = { Environment = "${var.environment}" }
       tags           = merge(local.tags, { nodegroup = "workers", Name = "${local.cluster_name}-eks-medium" })
@@ -67,7 +67,7 @@ module "eks" {
 
   # Sperating the self managed nodegroups to az's ( 1 AZ : 1 ASG )
   self_managed_node_groups = merge([
-    for subnet in slice(local.vpc_module.private_subnets, 0, length(local.availability_zones)) : {
+    for subnet in slice(module.vpc.private_subnets, 0, length(local.availability_zones)) : {
       for pool_name, pool_values in local.additional_self_managed_node_pools :
       "${var.environment}-${subnet}-${pool_name}" => merge(
         pool_values,
@@ -85,9 +85,9 @@ module "eks" {
     iam_role_additional_policies = {
       AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       AmazonEBSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-      EC2TagsControl               = "${local.iam_policies["ec2_tags"].arn}"
-      FpgaPull                     = "${local.iam_policies["fpga_pull"].arn}"
-      KMSAccess                    = "${local.iam_policies["kms"].arn}"
+      EC2TagsControl               = "${aws_iam_policy.policies["ec2_tags"].arn}"
+      FpgaPull                     = "${aws_iam_policy.policies["fpga_pull"].arn}"
+      KMSAccess                    = "${aws_iam_policy.policies["kms"].arn}"
     }
   }
   #######################
@@ -111,8 +111,8 @@ module "eks" {
       from_port        = 0
       to_port          = 0
       type             = "ingress"
-      cidr_blocks      = [local.vpc_module.vpc_cidr_block]
-      ipv6_cidr_blocks = length(local.vpc_module.vpc_ipv6_cidr_block) > 0 ? [local.vpc_module.vpc_ipv6_cidr_block] : []
+      cidr_blocks      = [module.vpc.vpc_cidr_block]
+      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
 
     egress_vpc_only = {
@@ -121,8 +121,8 @@ module "eks" {
       from_port        = 0
       to_port          = 0
       type             = "egress"
-      cidr_blocks      = [local.vpc_module.vpc_cidr_block]
-      ipv6_cidr_blocks = length(local.vpc_module.vpc_ipv6_cidr_block) > 0 ? [local.vpc_module.vpc_ipv6_cidr_block] : []
+      cidr_blocks      = [module.vpc.vpc_cidr_block]
+      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
 
     cluster_nodes_incoming = {
@@ -196,7 +196,7 @@ resource "kubernetes_annotations" "default_storageclass" {
   force       = "true"
 
   metadata {
-    name = data.kubernetes_storage_class.name.metadata[0].name
+    name = data.kubernetes_storage_class.gp2.metadata[0].name
   }
   annotations = {
     "storageclass.kubernetes.io/is-default-class" = "false"

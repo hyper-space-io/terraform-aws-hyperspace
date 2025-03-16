@@ -91,7 +91,7 @@ locals {
 # APP module
   internal_ingress_class_name = "nginx-internal"
   alb_values                  = <<EOT
-  vpcId: ${local.vpc_module.vpc_id}
+  vpcId: ${module.vpc.vpc_id}
   region: ${var.aws_region}
   EOT
 

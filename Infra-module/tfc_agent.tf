@@ -29,7 +29,7 @@ resource "aws_instance" "tfc_agent" {
 }
 
 resource "aws_iam_role" "tfc_agent_role" {
-  count = local.create_agent ? 1 : 0
+  # count = local.create_agent ? 1 : 0
   name  = "tfc-agent-role-${var.environment}"
 
   assume_role_policy = jsonencode({
@@ -47,7 +47,7 @@ resource "aws_iam_role" "tfc_agent_role" {
 }
 
 resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
-  count = local.create_agent ? 1 : 0
+  # count = local.create_agent ? 1 : 0
   name  = "tfc-agent-iam-policy-${var.environment}"
   role  = aws_iam_role.tfc_agent_role.name
 
@@ -266,13 +266,13 @@ resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
 }
 
 resource "aws_iam_instance_profile" "tfc_agent_profile" {
-  count = local.create_agent ? 1 : 0
+  # count = local.create_agent ? 1 : 0
   name  = "tfc-agent-profile-${var.environment}"
   role  = aws_iam_role.tfc_agent_role.name
 }
 
 resource "aws_security_group" "tfc_agent_sg" {
-  count       = local.create_agent ? 1 : 0
+  # count       = local.create_agent ? 1 : 0
   name        = "tfc-agent-sg-${var.environment}"
   description = "Security group for Terraform Cloud Agent"
   vpc_id      = module.vpc.vpc_id

@@ -285,28 +285,28 @@ resource "aws_security_group" "tfc_agent_sg" {
   }
 }
 
-resource "tfe_agent_pool" "hyperspace-agent-pool" {
+resource "tfe_agent_pool" "agent-pool" {
   count        = local.create_agent ? 1 : 0
-  name         = "hyperspace-agent-pool-${var.environment}"
+  name         = "agent-pool"
   organization = data.tfe_organizations.all.names[0]
 }
 
 resource "tfe_agent_pool_allowed_workspaces" "hyperspace" {
-  agent_pool_id = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool.id
+  agent_pool_id = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.agent-pool.id
   allowed_workspace_ids = concat(
     data.tfe_agent_pool.existing_pool[0].allowed_workspace_ids,
     [data.tfe_workspace.current.id]
   )
 }
 
-resource "tfe_agent_token" "hyperspace-agent-token" {
+resource "tfe_agent_token" "agent-token" {
   count         = local.create_agent ? 1 : 0
-  agent_pool_id = tfe_agent_pool.hyperspace-agent-pool.id
+  agent_pool_id = tfe_agent_pool.agent-pool.id
   description   = "hyperspace-agent-token"
 }
 
-resource "tfe_workspace_settings" "hyperspace-agent-settings" {
-  workspace_id   = data.tfe_workspace.current.id
-  agent_pool_id  = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool.id
-  execution_mode = "agent"
-}
+# resource "tfe_workspace_settings" "agent-settings" {
+#   workspace_id   = data.tfe_workspace.current.id
+#   agent_pool_id  = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.agent-pool.id
+#   execution_mode = "agent"
+# }

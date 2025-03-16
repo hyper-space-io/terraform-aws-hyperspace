@@ -254,14 +254,13 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
-  count = local.create_agent ? 1 : 0
-  for_each = toset([
+  for_each = local.create_agent ? toset([
     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
     "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
     "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM",
     "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
-  ])
+  ]) : []
   policy_arn = each.value
   role       = aws_iam_role.tfc_agent_role.name
 }

@@ -8,10 +8,10 @@ resource "aws_instance" "tfc_agent" {
   instance_type          = "t3.medium"
   ami                    = data.aws_ami.amazon_linux_2.id
   subnet_id              = module.vpc.private_subnets[0]
-  iam_instance_profile   = aws_iam_instance_profile.tfc_agent_profile.name
-  vpc_security_group_ids = [aws_security_group.tfc_agent_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.tfc_agent_profile[0].name
+  vpc_security_group_ids = [aws_security_group.tfc_agent_sg[0].id]
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    tfc_agent_token = tfe_agent_token.hyperspace-agent-token.token
+    tfc_agent_token = tfe_agent_token.hyperspace-agent-token[0].token
   })
   tags = merge(var.tags, {
     Name = "tfc-agent"

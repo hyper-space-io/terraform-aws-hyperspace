@@ -166,7 +166,7 @@ variable "domain_name" {
 # Agent
 
 variable "existing_agent_pool_name" {
-  description = "The name of the existing agent pool to use"
+  description = "Name of existing agent pool to use. If empty, a new agent pool will be created"
   type        = string
   default     = ""
 }

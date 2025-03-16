@@ -1,5 +1,5 @@
 locals {
-  create_agent = var.existing_agent_pool_name != "" ? true : false
+  create_agent = var.existing_agent_pool_name != "" ? false : true
 }
 resource "aws_instance" "tfc_agent" {
   count                  = local.create_agent ? 1 : 0
@@ -254,6 +254,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
+  count = local.create_agent ? 1 : 0
   for_each = toset([
     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",

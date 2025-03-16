@@ -2,7 +2,7 @@ locals {
   create_agent = var.existing_agent_pool_name != "" ? true : false
 }
 resource "aws_instance" "tfc_agent" {
-  count                  = local.create_agent ? 1 : 0
+  # count                  = local.create_agent ? 1 : 0
   ebs_optimized          = true
   monitoring             = true
   instance_type          = "t3.medium"
@@ -30,7 +30,7 @@ resource "aws_instance" "tfc_agent" {
 
 resource "aws_iam_role" "tfc_agent_role" {
   # count = local.create_agent ? 1 : 0
-  name  = "tfc-agent-role-${var.environment}"
+  name  = "tfc-agent-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -48,7 +48,7 @@ resource "aws_iam_role" "tfc_agent_role" {
 
 resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
   # count = local.create_agent ? 1 : 0
-  name  = "tfc-agent-iam-policy-${var.environment}"
+  name  = "tfc-agent-iam-policy"
   role  = aws_iam_role.tfc_agent_role.name
 
   policy = jsonencode({
@@ -267,13 +267,13 @@ resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
 
 resource "aws_iam_instance_profile" "tfc_agent_profile" {
   # count = local.create_agent ? 1 : 0
-  name  = "tfc-agent-profile-${var.environment}"
+  name  = "tfc-agent-profile"
   role  = aws_iam_role.tfc_agent_role.name
 }
 
 resource "aws_security_group" "tfc_agent_sg" {
   # count       = local.create_agent ? 1 : 0
-  name        = "tfc-agent-sg-${var.environment}"
+  name        = "tfc-agent-sg"
   description = "Security group for Terraform Cloud Agent"
   vpc_id      = module.vpc.vpc_id
   egress {

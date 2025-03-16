@@ -322,3 +322,18 @@ data "kubernetes_storage_class" "gp2" {
   depends_on = [module.eks]
 }
 
+data "kubernetes_ingress_v1" "external_ingress" {
+  metadata {
+    name      = "external-ingress"
+    namespace = "ingress"
+  }
+  depends_on = [time_sleep.wait_for_external_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
+}
+
+data "kubernetes_ingress_v1" "internal_ingress" {
+  metadata {
+    name      = "internal-ingress"
+    namespace = "ingress"
+  }
+  depends_on = [time_sleep.wait_for_internal_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
+}

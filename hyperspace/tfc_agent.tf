@@ -49,7 +49,7 @@ resource "aws_iam_role" "tfc_agent_role" {
 resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
   count = local.create_agent ? 1 : 0
   name  = "tfc-agent-iam-policy-${var.environment}"
-  role  = aws_iam_role.tfc_agent_role.name
+  role  = aws_iam_role.tfc_agent_role[0].name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -262,13 +262,13 @@ resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
     "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
   ]) : []
   policy_arn = each.value
-  role       = aws_iam_role.tfc_agent_role.name
+  role       = aws_iam_role.tfc_agent_role[0].name
 }
 
 resource "aws_iam_instance_profile" "tfc_agent_profile" {
   count = local.create_agent ? 1 : 0
   name  = "tfc-agent-profile-${var.environment}"
-  role  = aws_iam_role.tfc_agent_role.name
+  role  = aws_iam_role.tfc_agent_role[0].name
 }
 
 resource "aws_security_group" "tfc_agent_sg" {
@@ -301,7 +301,7 @@ resource "tfe_agent_pool_allowed_workspaces" "hyperspace" {
 
 resource "tfe_agent_token" "hyperspace-agent-token" {
   count         = local.create_agent ? 1 : 0
-  agent_pool_id = tfe_agent_pool.hyperspace-agent-pool.id
+  agent_pool_id = tfe_agent_pool.hyperspace-agent-pool[0].id
   description   = "hyperspace-agent-token"
 }
 

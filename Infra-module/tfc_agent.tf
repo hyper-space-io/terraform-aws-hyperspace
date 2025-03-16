@@ -1,4 +1,8 @@
+locals {
+  create_agent = var.existing_agent_pool_name != "" ? true : false
+}
 resource "aws_instance" "tfc_agent" {
+  count                  = local.create_agent ? 1 : 0
   ebs_optimized          = true
   monitoring             = true
   instance_type          = "t3.medium"
@@ -7,11 +11,11 @@ resource "aws_instance" "tfc_agent" {
   iam_instance_profile   = aws_iam_instance_profile.tfc_agent_profile.name
   vpc_security_group_ids = [aws_security_group.tfc_agent_sg.id]
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    tfc_agent_token = tfe_agent_token.app-agent-token.token
+    tfc_agent_token = tfe_agent_token.hyperspace-agent-token.token
   })
-  tags = {
+  tags = merge(var.tags, {
     Name = "tfc-agent"
-  }
+  })
   root_block_device {
     volume_type           = "gp3"
     volume_size           = 20
@@ -25,7 +29,8 @@ resource "aws_instance" "tfc_agent" {
 }
 
 resource "aws_iam_role" "tfc_agent_role" {
-  name = "tfc-agent-role"
+  count = local.create_agent ? 1 : 0
+  name  = "tfc-agent-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -42,8 +47,9 @@ resource "aws_iam_role" "tfc_agent_role" {
 }
 
 resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
-  name = "tfc-agent-iam-policy"
-  role = aws_iam_role.tfc_agent_role.name
+  count = local.create_agent ? 1 : 0
+  name  = "tfc-agent-iam-policy-${var.environment}"
+  role  = aws_iam_role.tfc_agent_role.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -169,9 +175,9 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "iam:TagInstanceProfile"
         ]
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/*"
+          "arn:aws:iam::*:role/*",
+          "arn:aws:iam::*:policy/*",
+          "arn:aws:iam::*:instance-profile/*"
         ]
       },
       {
@@ -182,7 +188,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "ec2:AuthorizeSecurityGroupEgress",
           "ec2:AuthorizeSecurityGroupIngress"
         ]
-        Resource = "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:security-group/*"
+        Resource = "arn:aws:ec2:*:*:security-group/*"
       },
       {
         Effect = "Allow"
@@ -194,13 +200,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "acm:AddTagsToCertificate",
           "acm:ListTagsForCertificate"
         ]
-        Resource = "arn:aws:acm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:certificate/*"
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
+        Resource = "arn:aws:acm:*:*:certificate/*"
       },
       {
         Effect = "Allow"
@@ -211,15 +211,9 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "kms:ScheduleKeyDeletion"
         ]
         Resource = [
-          "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/*",
-          "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:alias/*"
+          "arn:aws:kms:*:*:key/*",
+          "arn:aws:kms:*:*:alias/*"
         ]
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
       },
       {
         Effect = "Allow"
@@ -249,17 +243,11 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "autoscaling:TerminateInstanceInAutoScalingGroup"
         ]
         Resource = [
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/*",
-          "arn:aws:autoscaling:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:autoScalingGroup:*:autoScalingGroupName/*",
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:access-entry/*",
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:nodegroup/*"
+          "arn:aws:eks:*:*:cluster/*",
+          "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*",
+          "arn:aws:eks:*:*:access-entry/*",
+          "arn:aws:eks:*:*:nodegroup/*"
         ]
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
       }
     ]
   })
@@ -278,12 +266,14 @@ resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
 }
 
 resource "aws_iam_instance_profile" "tfc_agent_profile" {
-  name = "tfc-agent-profile"
-  role = aws_iam_role.tfc_agent_role.name
+  count = local.create_agent ? 1 : 0
+  name  = "tfc-agent-profile-${var.environment}"
+  role  = aws_iam_role.tfc_agent_role.name
 }
 
 resource "aws_security_group" "tfc_agent_sg" {
-  name        = "tfc-agent-sg"
+  count       = local.create_agent ? 1 : 0
+  name        = "tfc-agent-sg-${var.environment}"
   description = "Security group for Terraform Cloud Agent"
   vpc_id      = module.vpc.vpc_id
   egress {
@@ -293,4 +283,30 @@ resource "aws_security_group" "tfc_agent_sg" {
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow all egress traffic"
   }
+}
+
+resource "tfe_agent_pool" "hyperspace-agent-pool" {
+  count        = local.create_agent ? 1 : 0
+  name         = "hyperspace-agent-pool-${var.environment}"
+  organization = data.tfe_organizations.all.names[0]
+}
+
+resource "tfe_agent_pool_allowed_workspaces" "hyperspace" {
+  agent_pool_id = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool.id
+  allowed_workspace_ids = concat(
+    data.tfe_agent_pool.existing_pool[0].allowed_workspace_ids,
+    [data.tfe_workspace.current.id]
+  )
+}
+
+resource "tfe_agent_token" "hyperspace-agent-token" {
+  count         = local.create_agent ? 1 : 0
+  agent_pool_id = tfe_agent_pool.hyperspace-agent-pool.id
+  description   = "hyperspace-agent-token"
+}
+
+resource "tfe_workspace_settings" "hyperspace-agent-settings" {
+  workspace_id   = data.tfe_workspace.current.id
+  agent_pool_id  = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool.id
+  execution_mode = "agent"
 }

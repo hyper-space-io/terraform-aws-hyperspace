@@ -291,14 +291,6 @@ resource "tfe_agent_pool" "hyperspace-agent-pool" {
   organization = data.tfe_organizations.all.names[0]
 }
 
-resource "tfe_agent_pool_allowed_workspaces" "hyperspace" {
-  agent_pool_id = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool[0].id
-  allowed_workspace_ids = concat(
-    tolist(data.tfe_agent_pool.existing_pool[0].allowed_workspace_ids),
-    [data.tfe_workspace.current.id]
-  )
-}
-
 resource "tfe_agent_token" "hyperspace-agent-token" {
   count         = local.create_agent ? 1 : 0
   agent_pool_id = tfe_agent_pool.hyperspace-agent-pool[0].id
@@ -307,6 +299,6 @@ resource "tfe_agent_token" "hyperspace-agent-token" {
 
 resource "tfe_workspace_settings" "hyperspace-agent-settings" {
   workspace_id   = data.tfe_workspace.current.id
-  agent_pool_id  = var.existing_agent_pool_name != "" ? var.existing_agent_pool_name : tfe_agent_pool.hyperspace-agent-pool[0].id
+  agent_pool_id  = var.existing_agent_pool_name != "" ? data.tfe_agent_pool.existing_pool[0].id : tfe_agent_pool.hyperspace-agent-pool[0].id
   execution_mode = "agent"
 }

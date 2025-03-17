@@ -190,18 +190,18 @@ module "eks_blueprints_addons" {
 }
 
 # Remove non encrypted default storage class
-resource "kubernetes_annotations" "default_storageclass" {
-  api_version = "storage.k8s.io/v1"
-  kind        = "StorageClass"
-  force       = "true"
+# resource "kubernetes_annotations" "default_storageclass" {
+#   api_version = "storage.k8s.io/v1"
+#   kind        = "StorageClass"
+#   force       = "true"
 
-  metadata {
-    name = data.kubernetes_storage_class.gp2.metadata[0].name
-  }
-  annotations = {
-    "storageclass.kubernetes.io/is-default-class" = "false"
-  }
-}
+#   metadata {
+#     name = data.kubernetes_storage_class.gp2.metadata[0].name
+#   }
+#   annotations = {
+#     "storageclass.kubernetes.io/is-default-class" = "false"
+#   }
+# }
 
 resource "kubernetes_storage_class" "ebs_sc_gp3" {
   metadata {

@@ -88,7 +88,7 @@ locals {
     }
   }
 
-# APP module
+  # APP module
   internal_ingress_class_name = "nginx-internal"
   alb_values                  = <<EOT
   vpcId: ${module.vpc.vpc_id}

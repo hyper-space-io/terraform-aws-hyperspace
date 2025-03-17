@@ -1,5 +1,5 @@
 module "eks" {
-  count = var.create_eks ? 1 : 0
+  count           = var.create_eks ? 1 : 0
   source          = "terraform-aws-modules/eks/aws"
   version         = "~> 20.34.0"
   create          = var.create_eks
@@ -149,6 +149,7 @@ module "eks" {
   }, var.cluster_security_group_additional_rules)
 
   enable_cluster_creator_admin_permissions = true
+  access_entries                           = var.eks_access_entries
   enable_irsa                              = "true"
   cluster_endpoint_private_access          = "true"
   cluster_endpoint_public_access           = "false"
@@ -165,7 +166,7 @@ module "eks" {
 
 # EBS CSI Driver IRSA 
 module "irsa-ebs-csi" {
-  count = var.create_eks ? 1 : 0
+  count                 = var.create_eks ? 1 : 0
   source                = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version               = "~>5.48.0"
   role_name             = "${local.cluster_name}-ebs-csi"
@@ -177,7 +178,7 @@ module "irsa-ebs-csi" {
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
-  depends_on = [ module.eks[0] ]
+  depends_on = [module.eks[0]]
 }
 
 module "eks_blueprints_addons" {
@@ -190,6 +191,7 @@ module "eks_blueprints_addons" {
   oidc_provider_arn                   = module.eks[0].oidc_provider_arn
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller        = { values = [local.alb_values], wait = true }
+  depends_on                          = [module.eks[0]]
 }
 
 # Remove non encrypted default storage class

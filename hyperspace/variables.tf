@@ -143,6 +143,16 @@ variable "cluster_security_group_additional_rules" {
   default     = {}
 }
 
+variable "eks_access_entries" {
+  description = "Map of access entries to add to the EKS cluster"
+  type = map(object({
+    kubernetes_groups = list(string)
+    principal_arn     = string
+    type              = string
+  }))
+  default = {}
+}
+
 # Auto-scaling
 variable "enable_cluster_autoscaler" {
   description = "should we enable and install cluster-autoscaler"

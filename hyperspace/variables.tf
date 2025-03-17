@@ -131,6 +131,18 @@ variable "worker_instance_type" {
   description = "The list of allowed instance types for worker nodes."
 }
 
+variable "node_security_group_additional_rules" {
+  description = "Additional security group rules to add to the node security group"
+  type        = any
+  default     = {}
+}
+
+variable "cluster_security_group_additional_rules" {
+  description = "Additional security group rules to add to the cluster security group"
+  type        = any
+  default     = {}
+}
+
 # Auto-scaling
 variable "enable_cluster_autoscaler" {
   description = "should we enable and install cluster-autoscaler"

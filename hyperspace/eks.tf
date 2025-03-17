@@ -96,7 +96,7 @@ module "eks" {
   #######################
 
 
-  node_security_group_additional_rules = {
+  node_security_group_additional_rules = merge({
     ingress_auth0 = {
       description = "Allow ingress to Auth0 endpoints"
       protocol    = "tcp"
@@ -134,9 +134,9 @@ module "eks" {
       type                          = "ingress"
       source_cluster_security_group = true
     }
-  }
+  }, var.node_security_group_additional_rules)
 
-  cluster_security_group_additional_rules = {
+  cluster_security_group_additional_rules = merge({
     recieve_traffic_from_vpc = {
       description      = "Allow all traffic from within the VPC"
       protocol         = "-1"
@@ -146,7 +146,7 @@ module "eks" {
       cidr_blocks      = [module.vpc.vpc_cidr_block]
       ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
-  }
+  }, var.cluster_security_group_additional_rules)
 
   enable_cluster_creator_admin_permissions = true
   enable_irsa                              = "true"

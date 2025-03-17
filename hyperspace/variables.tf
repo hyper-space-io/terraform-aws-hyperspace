@@ -192,3 +192,9 @@ variable "existing_agent_pool_name" {
   type        = string
   default     = ""
 }
+
+variable "extra_routes" {
+  description = "Map of extra routes to add to the private route tables"
+  type = map(any)
+  default = {}
+}

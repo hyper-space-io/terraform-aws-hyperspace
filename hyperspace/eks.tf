@@ -203,26 +203,26 @@ module "eks_blueprints_addons" {
 #   }
 # }
 
-resource "kubernetes_storage_class" "ebs_sc_gp3" {
-  metadata {
-    name = "ebs-sc-gp3"
-    annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
-    }
-  }
-  storage_provisioner = "ebs.csi.aws.com"
-  reclaim_policy      = "Delete"
-  parameters = {
-    "csi.storage.k8s.io/fstype" = "ext4"
-    encrypted                   = "true"
-    type                        = "gp3"
-    tagSpecification_1          = "Name={{ .PVCNamespace }}/{{ .PVCName }}"
-    tagSpecification_2          = "Namespace={{ .PVCNamespace }}"
-  }
-  allow_volume_expansion = true
-  volume_binding_mode    = "WaitForFirstConsumer"
-  depends_on             = [kubernetes_annotations.default_storageclass]
-}
+# resource "kubernetes_storage_class" "ebs_sc_gp3" {
+#   metadata {
+#     name = "ebs-sc-gp3"
+#     annotations = {
+#       "storageclass.kubernetes.io/is-default-class" = "true"
+#     }
+#   }
+#   storage_provisioner = "ebs.csi.aws.com"
+#   reclaim_policy      = "Delete"
+#   parameters = {
+#     "csi.storage.k8s.io/fstype" = "ext4"
+#     encrypted                   = "true"
+#     type                        = "gp3"
+#     tagSpecification_1          = "Name={{ .PVCNamespace }}/{{ .PVCName }}"
+#     tagSpecification_2          = "Namespace={{ .PVCNamespace }}"
+#   }
+#   allow_volume_expansion = true
+#   volume_binding_mode    = "WaitForFirstConsumer"
+#   depends_on             = [kubernetes_annotations.default_storageclass]
+# }
 
 module "iam_iam-assumable-role-with-oidc" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"

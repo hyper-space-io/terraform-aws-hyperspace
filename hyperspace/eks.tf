@@ -176,6 +176,7 @@ module "irsa-ebs-csi" {
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
+  depends_on = [ module.eks[0] ]
 }
 
 module "eks_blueprints_addons" {

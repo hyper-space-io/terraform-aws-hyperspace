@@ -97,6 +97,15 @@ module "eks" {
 
 
   node_security_group_additional_rules = merge({
+    ingress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
+      description = "Allow ingress from peered VPCs"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+    } : null
+
     ingress_auth0 = {
       description = "Allow ingress to Auth0 endpoints"
       protocol    = "tcp"
@@ -146,6 +155,15 @@ module "eks" {
       cidr_blocks      = [module.vpc.vpc_cidr_block]
       ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
+
+    ingress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
+      description = "Allow ingress from peered VPCs"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+    } : null
   }, var.cluster_security_group_additional_rules)
 
   enable_cluster_creator_admin_permissions = true

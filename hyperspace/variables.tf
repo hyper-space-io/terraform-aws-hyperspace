@@ -101,6 +101,17 @@ variable "flow_log_file_format" {
   description = "The format for the flow log."
 }
 
+variable "extra_peering_connections" {
+  description = "Map of extra VPC peering connections"
+  type = map(object({
+    peer_vpc_id     = string
+    peer_cidr       = string
+    peer_account_id = string
+    peer_region     = string
+  }))
+  default = {}
+}
+
 ########################
 # EKS
 ########################

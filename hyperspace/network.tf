@@ -34,6 +34,31 @@ module "vpc" {
 }
 
 
+
+resource "aws_vpc_peering_connection" "extra_peering" {
+  for_each = var.extra_peering_connections
+
+  vpc_id        = module.vpc.vpc_id
+  peer_vpc_id   = each.value.peer_vpc_id
+  peer_owner_id = each.value.peer_account_id
+  peer_region   = each.value.peer_region
+  auto_accept   = true
+
+  tags = merge(local.tags, {
+    Name = "Peering connection to ${each.value.peer_vpc_id}"
+  })
+}
+
+
+resource "aws_route" "peering_routes" {
+  for_each = var.extra_peering_connections
+
+  route_table_id            = module.vpc.private_route_table_ids[0]
+  destination_cidr_block    = each.value.peer_cidr
+  vpc_peering_connection_id = aws_vpc_peering_connection.extra_peering[each.key].id
+}
+
+
 resource "aws_route" "extra_routes" {
   for_each = var.extra_routes
   route_table_id            = module.vpc.private_route_table_ids[0]

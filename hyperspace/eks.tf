@@ -135,8 +135,8 @@ module "eks" {
       ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
 
-    ingress_peered_vpcs = {
-      description = "Allow ingress from peered VPCs"
+    egress_peered_vpcs = {
+      description = "Allow egress to peered VPCs"
       protocol    = "-1"
       from_port   = 0
       to_port     = 0

@@ -135,6 +135,15 @@ module "eks" {
       ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
     }
 
+    ingress_peered_vpcs = {
+      description = "Allow ingress from peered VPCs"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "egress"
+      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+    }
+
     cluster_nodes_incoming = {
       description                   = "Allow traffic from cluster to node on ports 1025-65535"
       protocol                      = "tcp"
@@ -164,6 +173,15 @@ module "eks" {
       type        = "ingress"
       cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
     } : null
+
+    egress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
+      description = "Allow egress to peered VPCs"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "egress"
+      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+    } : null  
   }, var.cluster_security_group_additional_rules)
 
   enable_cluster_creator_admin_permissions = true

@@ -3,9 +3,9 @@ locals {
 }
 
 module "eks" {
+  count           = local.create_eks ? 1 : 0
   source          = "terraform-aws-modules/eks/aws"
   version         = "~> 20.34.0"
-  create          = local.create_eks
   cluster_name    = local.cluster_name
   cluster_version = "1.31"
   subnet_ids      = module.vpc.private_subnets
@@ -213,23 +213,23 @@ module "irsa-ebs-csi" {
 
   oidc_providers = {
     eks = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn               = module.eks[0].oidc_provider_arn
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
-  depends_on = [module.eks]
+  depends_on = [module.eks[0]]
 }
 
 module "eks_blueprints_addons" {
   source                              = "aws-ia/eks-blueprints-addons/aws"
   version                             = "1.16.3"
   cluster_name                        = local.cluster_name
-  cluster_endpoint                    = module.eks.cluster_endpoint
-  cluster_version                     = module.eks.cluster_version
-  oidc_provider_arn                   = module.eks.oidc_provider_arn
+  cluster_endpoint                    = module.eks[0].cluster_endpoint
+  cluster_version                     = module.eks[0].cluster_version
+  oidc_provider_arn                   = module.eks[0].oidc_provider_arn
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller        = { values = [local.alb_values], wait = true }
-  depends_on                          = [module.eks]
+  depends_on                          = [module.eks[0]]
 }
 
 # Remove non encrypted default storage class
@@ -244,7 +244,7 @@ resource "kubernetes_annotations" "default_storageclass" {
   annotations = {
     "storageclass.kubernetes.io/is-default-class" = "false"
   }
-  depends_on = [module.eks]
+  depends_on = [module.eks[0]]
 }
 
 resource "kubernetes_storage_class" "ebs_sc_gp3" {
@@ -274,10 +274,10 @@ module "iam_iam-assumable-role-with-oidc" {
   for_each                      = { for k, v in aws_iam_policy.policies : k => v if lookup(v, "create_assumable_role", false) == true }
   create_role                   = true
   role_name                     = each.value.name
-  provider_url                  = module.eks.cluster_oidc_issuer_url
+  provider_url                  = module.eks[0].cluster_oidc_issuer_url
   role_policy_arns              = [aws_iam_policy.policies["${each.key}"].arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:${each.value.sa_namespace}:${each.key}"]
-  depends_on                    = [module.eks]
+  depends_on                    = [module.eks[0]]
 }
 
 module "boto3_irsa" {
@@ -290,9 +290,9 @@ module "boto3_irsa" {
   assume_role_condition_test = "StringLike"
   oidc_providers = {
     ex = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn               = module.eks[0].oidc_provider_arn
       namespace_service_accounts = ["*:*"]
     }
   }
-  depends_on = [module.eks]
+  depends_on = [module.eks[0]]
 } 

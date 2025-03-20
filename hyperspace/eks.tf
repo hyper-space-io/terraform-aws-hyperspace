@@ -1,5 +1,5 @@
 locals {
-  create_eks = data.tfe_workspace.current.execution_mode == "agent" ? false : var.create_eks
+  create_eks = data.tfe_workspace.current.execution_mode == "agent" ? var.create_eks : false
 }
 
 module "eks" {

@@ -1,5 +1,5 @@
 module "eks" {
-  count           = var.create_eks ? 1 : 0
+  count           = var.create_eks && data.tfe_workspace.current.execution_mode == "agent" ? 1 : 0
   source          = "terraform-aws-modules/eks/aws"
   version         = "~> 20.34.0"
   create          = var.create_eks

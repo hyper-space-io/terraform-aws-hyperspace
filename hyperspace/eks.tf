@@ -235,6 +235,7 @@ module "eks_blueprints_addons" {
 
 # Remove non encrypted default storage class
 resource "kubernetes_annotations" "default_storageclass" {
+  count = local.create_eks ? 1 : 0
   api_version = "storage.k8s.io/v1"
   kind        = "StorageClass"
   force       = "true"

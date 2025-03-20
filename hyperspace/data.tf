@@ -318,11 +318,13 @@ data "tfe_agent_pool" "existing_pool" {
 }
 
 data "kubernetes_storage_class" "gp2" {
+  count = local.create_eks ? 1 : 0
   metadata { name = "gp2" }
   depends_on = [module.eks[0]]
 }
 
 data "kubernetes_ingress_v1" "external_ingress" {
+  count = local.create_eks ? 1 : 0
   metadata {
     name      = "external-ingress"
     namespace = "ingress"
@@ -331,6 +333,7 @@ data "kubernetes_ingress_v1" "external_ingress" {
 }
 
 data "kubernetes_ingress_v1" "internal_ingress" {
+  count = local.create_eks ? 1 : 0
   metadata {
     name      = "internal-ingress"
     namespace = "ingress"

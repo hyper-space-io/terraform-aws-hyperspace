@@ -117,7 +117,7 @@ controller:
           topologyKey: "kubernetes.io/hostname"
   EOF
   ]
-  depends_on = [module.eks_blueprints_addons, module.acm, module.eks[0]]
+  depends_on = [module.eks_blueprints_addons[0], module.acm, module.eks[0]]
 }
 
 

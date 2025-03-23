@@ -241,7 +241,7 @@ resource "kubernetes_annotations" "default_storageclass" {
   force       = "true"
 
   metadata {
-    name = data.kubernetes_storage_class.gp2.metadata[0].name
+    name = data.kubernetes_storage_class.gp2[0].metadata[0].name
   }
   annotations = {
     "storageclass.kubernetes.io/is-default-class" = "false"

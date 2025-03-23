@@ -184,7 +184,7 @@ module "eks" {
       to_port     = 0
       type        = "egress"
       cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
-    } : null  
+    } : null
   }, var.cluster_security_group_additional_rules)
 
   enable_cluster_creator_admin_permissions = true
@@ -201,6 +201,7 @@ module "eks" {
 
   cloudwatch_log_group_retention_in_days = "7"
   cluster_enabled_log_types              = ["api", "audit", "controllerManager", "scheduler", "authenticator"]
+  depends_on                             = [aws_route.peering_routes]
 }
 
 # EBS CSI Driver IRSA 
@@ -235,7 +236,7 @@ module "eks_blueprints_addons" {
 
 # Remove non encrypted default storage class
 resource "kubernetes_annotations" "default_storageclass" {
-  count = local.create_eks ? 1 : 0
+  count       = local.create_eks ? 1 : 0
   api_version = "storage.k8s.io/v1"
   kind        = "StorageClass"
   force       = "true"

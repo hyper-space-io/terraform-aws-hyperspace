@@ -59,9 +59,9 @@ resource "aws_route" "peering_routes" {
 
 
 resource "aws_route" "extra_routes" {
-  for_each = var.extra_routes
-  route_table_id            = module.vpc.private_route_table_ids[0]
-  destination_cidr_block    = each.value.destination_cidr_block
+  for_each               = var.extra_routes
+  route_table_id         = module.vpc.private_route_table_ids[0]
+  destination_cidr_block = each.value.destination_cidr_block
 
   carrier_gateway_id        = lookup(each.value, "carrier_gateway_id", null)
   core_network_arn          = lookup(each.value, "core_network_arn", null)

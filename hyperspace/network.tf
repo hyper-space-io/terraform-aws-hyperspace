@@ -36,7 +36,7 @@ module "vpc" {
 
 
 resource "aws_vpc_peering_connection" "extra_peering" {
-  for_each = local.create_eks ? var.extra_peering_connections : {}
+  for_each = var.extra_peering_connections
 
   vpc_id        = module.vpc.vpc_id
   peer_vpc_id   = each.value.peer_vpc_id

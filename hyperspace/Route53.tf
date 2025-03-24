@@ -53,21 +53,3 @@ resource "aws_route53_record" "internal_wildcard" {
   records    = [data.kubernetes_ingress_v1.internal_ingress[0].status.0.load_balancer.0.ingress.0.hostname]
   depends_on = [helm_release.nginx-ingress, module.eks, module.vpc]
 }
-
-data "kubernetes_ingress_v1" "external_ingress" {
-  count = local.create_eks ? 1 : 0
-  metadata {
-    name      = "external-ingress"
-    namespace = "ingress"
-  }
-  depends_on = [time_sleep.wait_for_external_ingress, module.eks[0], kubernetes_ingress_v1.nginx_ingress, aws_route.peering_routes, module.vpc]
-}
-
-data "kubernetes_ingress_v1" "internal_ingress" {
-  count = local.create_eks ? 1 : 0
-  metadata {
-    name      = "internal-ingress"
-    namespace = "ingress"
-  }
-  depends_on = [time_sleep.wait_for_internal_ingress, module.eks[0], kubernetes_ingress_v1.nginx_ingress, aws_route.peering_routes, module.vpc]
-}

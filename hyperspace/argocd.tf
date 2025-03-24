@@ -1,5 +1,5 @@
 resource "helm_release" "argocd" {
-  count            = var.create_eks ? 1 : 0
+  count            = var.enable_argocd && local.create_eks ? 1 : 0
   chart            = "argo-cd"
   namespace        = "argocd"
   name             = "argocd"
@@ -77,7 +77,7 @@ resource "helm_release" "argocd" {
 }
 
 resource "kubernetes_config_map" "argocd_cm" {
-  count = var.enable_argocd ? 1 : 0
+  count = var.enable_argocd && local.create_eks ? 1 : 0
 
   metadata {
     name      = "argocd-cm-${var.environment}"

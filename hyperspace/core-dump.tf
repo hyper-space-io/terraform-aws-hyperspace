@@ -14,7 +14,7 @@ resource "helm_release" "core_dump" {
 daemonset:
   includeCrioExe: true
   vendor: rhel7
-  s3BucketName: "${module.s3_buckets["core-dump-logs"].s3_bucket_name}"
+  s3BucketName: "${module.s3_buckets["core-dump-logs"].s3_bucket_id}"
   s3Region: "${var.aws_region}"
 serviceAccount:
   name: "${local.dump_release_name}"

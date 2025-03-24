@@ -218,7 +218,7 @@ module "irsa-ebs-csi" {
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
-  depends_on = [module.eks[0]]
+  depends_on = [module.eks[0], module.vpc, aws_route.peering_routes]
 }
 
 module "eks_blueprints_addons" {
@@ -231,7 +231,7 @@ module "eks_blueprints_addons" {
   oidc_provider_arn                   = module.eks[0].oidc_provider_arn
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller        = { values = [local.alb_values], wait = true }
-  depends_on                          = [module.eks]
+  depends_on                          = [module.eks, module.vpc, aws_route.peering_routes]
 }
 
 # Remove non encrypted default storage class
@@ -247,7 +247,7 @@ resource "kubernetes_annotations" "default_storageclass" {
   annotations = {
     "storageclass.kubernetes.io/is-default-class" = "false"
   }
-  depends_on = [module.eks[0]]
+  depends_on = [module.eks[0], module.vpc, aws_route.peering_routes]
 }
 
 resource "kubernetes_storage_class" "ebs_sc_gp3" {
@@ -269,7 +269,7 @@ resource "kubernetes_storage_class" "ebs_sc_gp3" {
   }
   allow_volume_expansion = true
   volume_binding_mode    = "WaitForFirstConsumer"
-  depends_on             = [kubernetes_annotations.default_storageclass]
+  depends_on             = [kubernetes_annotations.default_storageclass, module.vpc, aws_route.peering_routes, module.eks]
 }
 
 module "iam_iam-assumable-role-with-oidc" {

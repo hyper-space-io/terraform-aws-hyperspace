@@ -9,9 +9,9 @@ resource "aws_instance" "tfc_agent" {
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     tfc_agent_token = tfe_agent_token.app-agent-token.token
   })
-  tags = {
+  tags = merge(var.tags, {
     Name = "tfc-agent"
-  }
+  })
   root_block_device {
     volume_type           = "gp3"
     volume_size           = 20
@@ -51,100 +51,11 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
       {
         Effect = "Allow"
         Action = [
-          "iam:GetRole",
-          "iam:ListRoles",
-          "iam:GetPolicy",
-          "iam:GetRolePolicy",
-          "iam:GetPolicyVersion",
-          "iam:ListPolicies",
-          "iam:ListPolicyVersions",
-          "iam:ListRolePolicies",
-          "iam:ListInstanceProfiles",
-          "iam:ListInstanceProfilesForRole",
-          "iam:GetInstanceProfile",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListUserPolicies",
-          "iam:GetUserPolicy",
-          "iam:GetUser",
-          "iam:ListUsers",
+          "iam:Get*",
+          "iam:List*",
           "iam:CreateOpenIDConnectProvider",
           "iam:TagOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider",
-          "iam:DeleteOpenIDConnectProvider",
-          "ec2:DescribeImages",
-          "ec2:DescribeInstances",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeSecurityGroupReferences",
-          "ec2:DescribeSecurityGroupRules",
-          "ec2:CreateLaunchTemplate",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DeleteLaunchTemplate",
-          "ec2:DescribeLaunchTemplateVersions",
-          "ec2:DeleteLaunchTemplateVersions",
-          "ec2:RunInstances",
-          "ec2:CreateTags",
-          "ec2:DeleteTags",
-          "ec2:DescribeTags",
-          "ec2:DescribeInstanceTypes",
-          "ec2:DescribeInstanceTypeOfferings",
-          "kms:CreateKey",
-          "kms:CreateAlias",
-          "kms:DeleteAlias",
-          "kms:ListKeys",
-          "kms:ListAliases",
-          "route53:ListHostedZones",
-          "route53:DeleteHostedZone",
-          "route53:ListResourceRecordSets",
-          "route53:GetChange",
-          "route53:GetHostedZone",
-          "route53:ListHostedZonesByName",
-          "route53:CreateHostedZone",
-          "route53:ChangeResourceRecordSets",
-          "route53:ListTagsForResource",
-          "route53:ChangeTagsForResource",
-          "eks:DescribeAddonVersions",
-          "eks:CreateAddon",
-          "eks:DeleteAddon",
-          "eks:UpdateAddon",
-          "eks:DescribeAddonConfiguration",
-          "eks:DescribeAddon",
-          "eks:ListAddons",
-          "eks:GetAddon",
-          "eks:DescribeNodegroup",
-          "eks:DescribeAccessEntry",
-          "eks:ListAssociatedAccessPolicies",
-          "elasticloadbalancing:DescribeTags",
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeTargetGroups",
-          "elasticloadbalancing:DescribeTargetHealth",
-          "elasticloadbalancing:DescribeRules",
-          "elasticloadbalancing:DescribeListeners",
-          "elasticloadbalancing:DescribeSSLPolicies",
-          "ec2:CreateVpcEndpointServiceConfiguration",
-          "ec2:DescribeVpcEndpointServiceConfigurations",
-          "ec2:ModifyVpcEndpointServiceConfiguration",
-          "ec2:DeleteVpcEndpointServiceConfigurations",
-          "ec2:DescribeVpcEndpointServicePermissions",
-          "ec2:ModifyVpcEndpointServicePermissions",
-          "ec2:DescribeVpcEndpointServiceConfigurations",
-          "ecr:GetAuthorizationToken",
-          "ecr:GetLifecyclePolicy",
-          "ecr:GetLifecyclePolicyPreview",
-          "ecr:GetRegistryPolicy",
-          "ecr:GetRegistryScanningConfiguration",
-          "ecr:GetRepositoryPolicy",
-          "ecr:ListImages",
-          "ecr:DescribeImages",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:PutImage",
-          "ecr:BatchGetImage",
-          "ecr:BatchImportUpstreamImage",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:GetImageCopyStatus",
-          "autoscaling:DescribeScalingActivities"
+          "iam:DeleteOpenIDConnectProvider"
         ]
         Resource = "*"
       },
@@ -160,19 +71,34 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "iam:DeleteInstanceProfile",
           "iam:PassRole",
           "iam:PutRolePolicy",
-          "iam:TagRole",
-          "iam:TagPolicy",
+          "iam:Tag*",
           "iam:AttachRolePolicy",
           "iam:DetachRolePolicy",
           "iam:CreateInstanceProfile",
-          "iam:AddRoleToInstanceProfile",
-          "iam:TagInstanceProfile"
+          "iam:AddRoleToInstanceProfile"
         ]
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/*"
+          "arn:aws:iam::*:role/*",
+          "arn:aws:iam::*:policy/*",
+          "arn:aws:iam::*:instance-profile/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:Describe*",
+          "ec2:CreateLaunchTemplate",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:DeleteLaunchTemplateVersions",
+          "ec2:RunInstances",
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
+          "ec2:CreateVpcEndpointServiceConfiguration",
+          "ec2:ModifyVpcEndpointServiceConfiguration",
+          "ec2:DeleteVpcEndpointServiceConfigurations",
+          "ec2:ModifyVpcEndpointServicePermissions"
+        ]
+        Resource = "*"
       },
       {
         Effect = "Allow"
@@ -182,7 +108,98 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "ec2:AuthorizeSecurityGroupEgress",
           "ec2:AuthorizeSecurityGroupIngress"
         ]
-        Resource = "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:security-group/*"
+        Resource = "arn:aws:ec2:*:*:security-group/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateVpcEndpoint",
+          "ec2:DeleteVpcEndpoints",
+          "ec2:ModifyVpcEndpoint",
+          "vpce:*",
+          "ec2:DescribeVpcEndpoints"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:*Cluster*",
+          "eks:*AccessEntry*",
+          "eks:*AccessPolic*",
+          "eks:*Nodegroup*",
+        ]
+        Resource = [
+          "arn:aws:eks:*:*:cluster/*",
+          "arn:aws:eks:*:*:access-entry/*",
+          "arn:aws:eks:*:*:nodegroup/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:*Addon*",
+          "elasticloadbalancing:Describe*"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:Get*",
+          "ecr:List*",
+          "ecr:Describe*",
+          "ecr:BatchCheck*",
+          "ecr:BatchGet*",
+          "ecr:BatchImportUpstreamImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:CreateKey",
+          "kms:CreateAlias",
+          "kms:DeleteAlias",
+          "kms:ListKeys",
+          "kms:ListAliases"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:TagResource",
+          "kms:DescribeKey",
+          "kms:DeleteKey",
+          "kms:ScheduleKeyDeletion"
+        ]
+        Resource = [
+          "arn:aws:kms:*:*:key/*",
+          "arn:aws:kms:*:*:alias/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ListHostedZones",
+          "route53:DeleteHostedZone",
+          "route53:ListResourceRecordSets",
+          "route53:GetChange",
+          "route53:GetHostedZone",
+          "route53:ListHostedZonesByName",
+          "route53:CreateHostedZone",
+          "route53:ChangeResourceRecordSets",
+          "route53:ListTagsForResource",
+          "route53:AssociateVPCWithHostedZone",
+          "route53:DisassociateVPCFromHostedZone",
+          "route53:ChangeTagsForResource"
+        ]
+        Resource = "*"
       },
       {
         Effect = "Allow"
@@ -194,51 +211,11 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "acm:AddTagsToCertificate",
           "acm:ListTagsForCertificate"
         ]
-        Resource = "arn:aws:acm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:certificate/*"
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
+        Resource = "arn:aws:acm:*:*:certificate/*"
       },
       {
         Effect = "Allow"
         Action = [
-          "kms:TagResource",
-          "kms:DescribeKey",
-          "kms:DeleteKey",
-          "kms:ScheduleKeyDeletion"
-        ]
-        Resource = [
-          "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/*",
-          "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:alias/*"
-        ]
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "eks:CreateCluster",
-          "eks:TagResource",
-          "eks:DescribeCluster",
-          "eks:DeleteCluster",
-          "eks:CreateAccessEntry",
-          "eks:DeleteAccessEntry",
-          "eks:ListAccessEntries",
-          "eks:UpdateClusterConfig",
-          "eks:UpdateClusterVersion",
-          "eks:CreateNodegroup",
-          "eks:DeleteNodegroup",
-          "eks:DescribeUpdate",
-          "eks:AssociateAccessPolicy",
-          "eks:DisassociateAccessPolicy",
-          "eks:UpdateNodegroupConfig",
           "autoscaling:CreateAutoScalingGroup",
           "autoscaling:DeleteAutoScalingGroup",
           "autoscaling:DescribeAutoScalingGroups",
@@ -246,20 +223,10 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "autoscaling:DescribeLaunchConfigurations",
           "autoscaling:UpdateAutoScalingGroup",
           "autoscaling:SetDesiredCapacity",
-          "autoscaling:TerminateInstanceInAutoScalingGroup"
+          "autoscaling:TerminateInstanceInAutoScalingGroup",
+          "autoscaling:DescribeScalingActivities"
         ]
-        Resource = [
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/*",
-          "arn:aws:autoscaling:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:autoScalingGroup:*:autoScalingGroupName/*",
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:access-entry/*",
-          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:nodegroup/*"
-        ]
-        Condition = {
-          "ForAnyValue:StringLike" = {
-            "aws:ResourceTag/environment" : ["${var.environment}"],
-            "aws:ResourceTag/project" : ["${var.project}"]
-          }
-        }
+        Resource = "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*"
       }
     ]
   })

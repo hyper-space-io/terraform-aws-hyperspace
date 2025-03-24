@@ -173,3 +173,41 @@ variable "local_iam_policies" {
   default     = ""
   description = "The IAM policies to use for the resources"
 }
+
+################################
+###### ArgoCD Privatelink ######
+################################
+
+variable "argocd_endpoint_additional_aws_regions" {
+  type        = string
+  default     = "eu-central-1"
+  description = "The additional aws regions to enable for the argocd vpc endpoint"
+}
+
+variable "argocd_endpoint_allowed_principals" {
+  type        = string
+  default     = ""
+  description = "The allowed principals for the argocd vpc endpoint"
+}
+
+################################
+#### Prometheus Privatelink ####
+################################
+
+variable "prometheus_endpoint_additional_cidr_blocks" {
+  type        = string
+  default     = ""
+  description = "The CIDR blocks to allow access to the prometheus vpc endpoint"
+}
+
+variable "prometheus_endpoint_service_name" {
+  type        = string
+  default     = ""
+  description = "The service name to use for the prometheus vpc endpoint"
+}
+
+variable "prometheus_endpoint_service_region" {
+  type        = string
+  default     = ""
+  description = "The region the prometheus vpc endpoint will connect to"
+}

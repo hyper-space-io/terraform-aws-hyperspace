@@ -209,3 +209,23 @@ variable "extra_routes" {
   type        = map(any)
   default     = {}
 }
+
+# ArgoCD
+
+variable "argocd_rbac_policy_default" {
+  description = "default role for argocd"
+  type        = string
+  default     = "role:readonly"
+}
+
+variable "argocd_rbac_policy_rules" {
+  description = "Rules for argocd rbac"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_argocd" {
+  description = "should we enable and install argocd"
+  type        = bool
+  default     = true
+}

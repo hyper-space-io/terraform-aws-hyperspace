@@ -40,16 +40,34 @@ resource "aws_route53_record" "wildcard" {
   name       = "*"
   type       = "CNAME"
   ttl        = "300"
-  records    = [data.kubernetes_ingress_v1.external_ingress.status.0.load_balancer.0.ingress.0.hostname]
+  records    = [data.kubernetes_ingress_v1.external_ingress[0].status.0.load_balancer.0.ingress.0.hostname]
   depends_on = [helm_release.nginx-ingress, module.eks, module.vpc]
 }
 
 resource "aws_route53_record" "internal_wildcard" {
-  count      = local.create_records && local.create_eks
+  count      = local.create_eks ? local.create_records : 0
   zone_id    = module.zones.route53_zone_zone_id["internal"]
   name       = "*"
   type       = "CNAME"
   ttl        = "300"
-  records    = [data.kubernetes_ingress_v1.internal_ingress.status.0.load_balancer.0.ingress.0.hostname]
+  records    = [data.kubernetes_ingress_v1.internal_ingress[0].status.0.load_balancer.0.ingress.0.hostname]
   depends_on = [helm_release.nginx-ingress, module.eks, module.vpc]
+}
+
+data "kubernetes_ingress_v1" "external_ingress" {
+  count = local.create_eks ? 1 : 0
+  metadata {
+    name      = "external-ingress"
+    namespace = "ingress"
+  }
+  depends_on = [time_sleep.wait_for_external_ingress, module.eks[0], kubernetes_ingress_v1.nginx_ingress, aws_route.peering_routes, module.vpc]
+}
+
+data "kubernetes_ingress_v1" "internal_ingress" {
+  count = local.create_eks ? 1 : 0
+  metadata {
+    name      = "internal-ingress"
+    namespace = "ingress"
+  }
+  depends_on = [time_sleep.wait_for_internal_ingress, module.eks[0], kubernetes_ingress_v1.nginx_ingress, aws_route.peering_routes, module.vpc]
 }

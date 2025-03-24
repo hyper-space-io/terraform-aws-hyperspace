@@ -201,7 +201,7 @@ module "eks" {
 
   cloudwatch_log_group_retention_in_days = "7"
   cluster_enabled_log_types              = ["api", "audit", "controllerManager", "scheduler", "authenticator"]
-  depends_on                             = [aws_route.peering_routes]
+  depends_on                             = [aws_route.peering_routes, module.vpc]
 }
 
 # EBS CSI Driver IRSA 

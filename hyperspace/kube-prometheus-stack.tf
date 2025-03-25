@@ -2,7 +2,8 @@ locals {
   prometheus_release_name = "kube-prometheus-stack"
 }
 resource "helm_release" "kube_prometheus_stack" {
-  count            = local.create_eks ? 1 : 0
+  # count            = local.create_eks ? 1 : 0
+  count            = 0
   name             = local.prometheus_release_name
   chart            = local.prometheus_release_name
   create_namespace = true
@@ -87,7 +88,7 @@ EOF
 }
 
 resource "helm_release" "prometheus_adapter" {
-  count      = local.create_eks ? 1 : 0
+  count      = 0
   name       = "prometheus-adapter"
   version    = "~> 4.11.0"
   namespace  = "monitoring"

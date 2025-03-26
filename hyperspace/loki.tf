@@ -1,6 +1,6 @@
 resource "helm_release" "loki" {
   # count            = local.create_eks ? 1 : 0
-  count            = 1
+  count            = 0
   name             = "loki"
   namespace        = "monitoring"
   create_namespace = true
@@ -9,6 +9,7 @@ resource "helm_release" "loki" {
   chart            = "loki-stack"
   version          = "~> 2.10.2"
   wait             = true
+  timeout          = 1000
   values = [<<EOF
 loki:
   serviceAccount:

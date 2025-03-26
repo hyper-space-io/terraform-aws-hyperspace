@@ -17,3 +17,7 @@ output "tfe_workspace" {
   value       = data.tfe_workspace.current
   description = "The complete object representing the TFE workspace for the app module, including workspace configurations, policies, and associated resources."
 }
+
+output "roles" {
+  value = module.iam_iam-assumable-role-with-oidc
+}

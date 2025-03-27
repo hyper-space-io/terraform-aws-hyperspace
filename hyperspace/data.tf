@@ -198,7 +198,7 @@ data "aws_iam_policy_document" "loki_s3_dynamodb_full_access" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.cluster_name}-loki-index-*"
+      "arn:aws:dynamodb:${var.aws_region}:*:table/${local.cluster_name}-loki-index-*"
     ]
   }
   statement {
@@ -227,7 +227,7 @@ data "aws_iam_policy_document" "loki_s3_dynamodb_full_access" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.cluster_name}-loki"
+      "arn:aws:iam::*:role/${local.cluster_name}-loki"
     ]
   }
 }

@@ -1,6 +1,6 @@
 resource "helm_release" "loki" {
-  # count            = local.create_eks ? 1 : 0
-  count            = 1
+  count            = local.create_eks ? 1 : 0
+  # count            = 1
   name             = "loki"
   namespace        = "monitoring"
   create_namespace = true

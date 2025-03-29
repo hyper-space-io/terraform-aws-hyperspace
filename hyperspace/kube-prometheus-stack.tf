@@ -3,11 +3,13 @@ locals {
 }
 
 resource "helm_release" "kube_prometheus_stack" {
-  count            = local.create_eks ? 0 : 0
+  count            = local.create_eks ? 1 : 0
   name             = local.prometheus_release_name
   chart            = local.prometheus_release_name
   create_namespace = true
   cleanup_on_fail  = true
+  recreate_pods = true
+  force_update = true
   version          = "68.3.0"
   namespace        = "monitoring"
   repository       = "https://prometheus-community.github.io/helm-charts"

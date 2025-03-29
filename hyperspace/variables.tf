@@ -229,3 +229,28 @@ variable "enable_argocd" {
   type        = bool
   default     = true
 }
+
+
+variable "create_prometheus_private_link" {
+  description = "should we create private link for prometheus"
+  type        = bool
+  default     = true
+}
+
+variable "prometheus_endpoint_additional_cidr_blocks" {
+  type        = string
+  default     = ""
+  description = "The CIDR blocks to allow access to the prometheus vpc endpoint"
+}
+
+variable "prometheus_endpoint_service_name" {
+  type        = string
+  default     = ""
+  description = "The service name to use for the prometheus vpc endpoint"
+}
+
+variable "prometheus_endpoint_service_region" {
+  type        = string
+  default     = ""
+  description = "The region the prometheus vpc endpoint will connect to"
+}

@@ -2,11 +2,11 @@ locals {
   prometheus_release_name = "kube-prometheus-stack"
 }
 
-resource "null_resource" "cleanup_old_helm_release" {
+resource "null_resource" "cleanup_old_helm" {
   count = local.create_eks ? 1 : 0
   
   provisioner "local-exec" {
-    command = "helm uninstall kube-prometheus-stack -n monitoring"
+    command = "helm uninstall kube-prometheus-stack -n monitoring --wait"
   }
 
   depends_on = [module.eks]

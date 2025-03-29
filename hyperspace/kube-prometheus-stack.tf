@@ -6,7 +6,7 @@ resource "null_resource" "cleanup_old_helm_release" {
   count = local.create_eks ? 1 : 0
   
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.aws_region} && helm uninstall kube-prometheus-stack -n monitoring"
+    command = "helm uninstall kube-prometheus-stack -n monitoring"
   }
 
   depends_on = [module.eks]

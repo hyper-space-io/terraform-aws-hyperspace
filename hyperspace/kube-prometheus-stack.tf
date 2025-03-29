@@ -119,7 +119,7 @@ resource "aws_vpc_endpoint" "prometheus" {
   service_name      = var.prometheus_endpoint_service_name
   vpc_endpoint_type = "Interface"
   subnet_ids        = module.vpc.private_subnets
-  security_group_ids = [aws_security_group.prometheus_endpoint_service.id]
+  security_group_ids = [aws_security_group.prometheus_endpoint_service[0].id]
   private_dns_enabled = true
   ip_address_type     = "ipv4"
   service_region      = var.prometheus_endpoint_service_region

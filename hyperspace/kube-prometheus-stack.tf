@@ -2,6 +2,16 @@ locals {
   prometheus_release_name = "kube-prometheus-stack"
 }
 
+resource "null_resource" "cleanup_old_helm_release" {
+  count = local.create_eks ? 1 : 0
+  
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.aws_region} && helm uninstall kube-prometheus-stack -n monitoring || true"
+  }
+
+  depends_on = [module.eks]
+}
+
 resource "helm_release" "kube_prometheus_stack" {
   count            = local.create_eks ? 1 : 0
   name             = local.prometheus_release_name
@@ -88,7 +98,7 @@ EOF
     name  = "grafana.adminPassword"
     value = random_password.grafana_admin_password.result
   }
-  depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
+  depends_on = [module.eks, time_sleep.wait_for_internal_ingress, null_resource.cleanup_old_helm_release]
 }
 
 resource "helm_release" "prometheus_adapter" {

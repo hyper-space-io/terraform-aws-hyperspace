@@ -2,53 +2,19 @@ locals {
   prometheus_release_name = "kube-prometheus-stack"
 }
 
-resource "null_resource" "cleanup_old_helm" {
-  count = local.create_eks ? 1 : 0
-  
-  provisioner "local-exec" {
-    command = <<-EOT
-      # Create a temporary directory
-      TEMP_DIR=$(mktemp -d)
-      cd $TEMP_DIR
-      
-      # Download Helm binary
-      curl -fsSL -o helm.tar.gz https://get.helm.sh/helm-v3.17.2-linux-amd64.tar.gz
-      
-      # Extract the binary
-      tar -zxvf helm.tar.gz
-      
-      # Move to a directory in PATH or use directly
-      mkdir -p $HOME/bin
-      mv linux-amd64/helm $HOME/bin/helm
-      chmod +x $HOME/bin/helm
-      
-      # Use the helm binary
-      $HOME/bin/helm uninstall kube-prometheus-stack -n monitoring --wait || true
-      
-      # Clean up
-      cd - > /dev/null
-      rm -rf $TEMP_DIR
-    EOT
-  }
-
-  depends_on = [module.eks]
-}
-
 resource "helm_release" "kube_prometheus_stack" {
   count            = local.create_eks ? 1 : 0
   name             = local.prometheus_release_name
   chart            = local.prometheus_release_name
   create_namespace = true
   cleanup_on_fail  = true
-  recreate_pods = true
-  force_update = true
   version          = "68.3.0"
   namespace        = "monitoring"
   repository       = "https://prometheus-community.github.io/helm-charts"
   values = [<<EOF
-# global:
-#   imagePullSecrets:
-#     - name: "regcred-secret"
+global:
+  imagePullSecrets:
+    - name: "regcred-secret"
 
 grafana:
   ingress:
@@ -120,7 +86,7 @@ EOF
     name  = "grafana.adminPassword"
     value = random_password.grafana_admin_password.result
   }
-  depends_on = [module.eks, time_sleep.wait_for_internal_ingress, null_resource.cleanup_old_helm]
+  depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
 }
 
 resource "helm_release" "prometheus_adapter" {

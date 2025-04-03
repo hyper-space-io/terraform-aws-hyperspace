@@ -6,7 +6,29 @@ resource "null_resource" "cleanup_old_helm" {
   count = local.create_eks ? 1 : 0
   
   provisioner "local-exec" {
-    command = "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh && helm uninstall kube-prometheus-stack -n monitoring --wait"
+    command = <<-EOT
+      # Create a temporary directory
+      TEMP_DIR=$(mktemp -d)
+      cd $TEMP_DIR
+      
+      # Download Helm binary
+      curl -fsSL -o helm.tar.gz https://get.helm.sh/helm-v3.17.2-linux-amd64.tar.gz
+      
+      # Extract the binary
+      tar -zxvf helm.tar.gz
+      
+      # Move to a directory in PATH or use directly
+      mkdir -p $HOME/bin
+      mv linux-amd64/helm $HOME/bin/helm
+      chmod +x $HOME/bin/helm
+      
+      # Use the helm binary
+      $HOME/bin/helm uninstall kube-prometheus-stack -n monitoring --wait || true
+      
+      # Clean up
+      cd - > /dev/null
+      rm -rf $TEMP_DIR
+    EOT
   }
 
   depends_on = [module.eks]

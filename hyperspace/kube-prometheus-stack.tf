@@ -6,7 +6,7 @@ resource "null_resource" "cleanup_old_helm" {
   count = local.create_eks ? 1 : 0
   
   provisioner "local-exec" {
-    command = "helm uninstall kube-prometheus-stack -n monitoring --wait"
+    command = "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh && helm uninstall kube-prometheus-stack -n monitoring --wait"
   }
 
   depends_on = [module.eks]

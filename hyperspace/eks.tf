@@ -99,93 +99,102 @@ module "eks" {
   #######################
 
 
-  node_security_group_additional_rules = merge({
-    ingress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
-      description = "Allow ingress from peered VPCs"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
-    } : null
+  node_security_group_additional_rules = merge(
+    {
+      ingress_self_all = {
+        description      = "Node to node all ports/protocols"
+        protocol         = "-1"
+        from_port        = 0
+        to_port          = 0
+        type             = "ingress"
+        cidr_blocks      = [module.vpc.vpc_cidr_block]
+        ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
+      }
 
-    ingress_auth0 = {
-      description = "Allow ingress to Auth0 endpoints"
-      protocol    = "tcp"
-      from_port   = 443
-      to_port     = 443
-      type        = "ingress"
-      cidr_blocks = local.auth0_ingress_cidr_blocks["${split("-", var.aws_region)[0]}"]
-    }
+      egress_vpc_only = {
+        description      = "Node all egress within VPC"
+        protocol         = "-1"
+        from_port        = 0
+        to_port          = 0
+        type             = "egress"
+        cidr_blocks      = [module.vpc.vpc_cidr_block]
+        ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
+      }
 
-    ingress_self_all = {
-      description      = "Node to node all ports/protocols"
-      protocol         = "-1"
-      from_port        = 0
-      to_port          = 0
-      type             = "ingress"
-      cidr_blocks      = [module.vpc.vpc_cidr_block]
-      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
-    }
+      cluster_nodes_incoming = {
+        description                   = "Allow traffic from cluster to node on ports 1025-65535"
+        protocol                      = "tcp"
+        from_port                     = 1025
+        to_port                       = 65535
+        type                          = "ingress"
+        source_cluster_security_group = true
+      }
+    },
+    length(var.extra_peering_connections) > 0 ? {
+      ingress_peered_vpcs = {
+        description = "Allow ingress from peered VPCs"
+        protocol    = "-1"
+        from_port   = 0
+        to_port     = 0
+        type        = "ingress"
+        cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+      }
+      
+      egress_peered_vpcs = {
+        description = "Allow egress to peered VPCs"
+        protocol    = "-1"
+        from_port   = 0
+        to_port     = 0
+        type        = "egress"
+        cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+      }
+    } : {},
+    {
+      ingress_auth0 = {
+        description = "Allow ingress to Auth0 endpoints"
+        protocol    = "tcp"
+        from_port   = 443
+        to_port     = 443
+        type        = "ingress"
+        cidr_blocks = local.auth0_ingress_cidr_blocks["${split("-", var.aws_region)[0]}"]
+      }
+    },
+    var.node_security_group_additional_rules
+  )
 
-    egress_vpc_only = {
-      description      = "Node all egress within VPC"
-      protocol         = "-1"
-      from_port        = 0
-      to_port          = 0
-      type             = "egress"
-      cidr_blocks      = [module.vpc.vpc_cidr_block]
-      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
-    }
-
-    egress_peered_vpcs = {
-      description = "Allow egress to peered VPCs"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "egress"
-      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
-    }
-
-    cluster_nodes_incoming = {
-      description                   = "Allow traffic from cluster to node on ports 1025-65535"
-      protocol                      = "tcp"
-      from_port                     = 1025
-      to_port                       = 65535
-      type                          = "ingress"
-      source_cluster_security_group = true
-    }
-  }, var.node_security_group_additional_rules)
-
-  cluster_security_group_additional_rules = merge({
-    recieve_traffic_from_vpc = {
-      description      = "Allow all traffic from within the VPC"
-      protocol         = "-1"
-      from_port        = 0
-      to_port          = 0
-      type             = "ingress"
-      cidr_blocks      = [module.vpc.vpc_cidr_block]
-      ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
-    }
-
-    ingress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
-      description = "Allow ingress from peered VPCs"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
-    } : null
-
-    egress_peered_vpcs = length(var.extra_peering_connections) > 0 ? {
-      description = "Allow egress to peered VPCs"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "egress"
-      cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
-    } : null
-  }, var.cluster_security_group_additional_rules)
+  cluster_security_group_additional_rules = merge(
+    {
+      recieve_traffic_from_vpc = {
+        description      = "Allow all traffic from within the VPC"
+        protocol         = "-1"
+        from_port        = 0
+        to_port          = 0
+        type             = "ingress"
+        cidr_blocks      = [module.vpc.vpc_cidr_block]
+        ipv6_cidr_blocks = length(module.vpc.vpc_ipv6_cidr_block) > 0 ? [module.vpc.vpc_ipv6_cidr_block] : []
+      }
+    },
+    length(var.extra_peering_connections) > 0 ? {
+      ingress_peered_vpcs = {
+        description = "Allow ingress from peered VPCs"
+        protocol    = "-1"
+        from_port   = 0
+        to_port     = 0
+        type        = "ingress"
+        cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+      }
+      
+      egress_peered_vpcs = {
+        description = "Allow egress to peered VPCs"
+        protocol    = "-1"
+        from_port   = 0
+        to_port     = 0
+        type        = "egress"
+        cidr_blocks = [for peering in var.extra_peering_connections : peering.peer_cidr]
+      }
+    } : {},
+    var.cluster_security_group_additional_rules
+  )
 
   enable_cluster_creator_admin_permissions = true
   access_entries                           = var.eks_access_entries

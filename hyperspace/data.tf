@@ -342,6 +342,7 @@ data "kubernetes_ingress_v1" "internal_ingress" {
 }
 
 data "aws_lb" "argocd_lb" {
+  count = var.enable_argocd && local.create_eks && var.enable_argocd_private_link ? 1 : 0
   tags = {
     "service.k8s.aws/stack" = "argocd/argocd-server"
     "elbv2.k8s.aws/cluster" = local.cluster_name

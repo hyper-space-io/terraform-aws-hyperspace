@@ -47,7 +47,7 @@ resource "helm_release" "argocd" {
             "service.beta.kubernetes.io/aws-load-balancer-scheme"                 = "internal"
             "service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy" = "ELBSecurityPolicy-TLS13-1-2-2021-06"
           }
-        }: {}
+        }: {type = "ClusterIP", annotations = {}}
         autoscaling = {
           enabled     = true
           minReplicas = "1"

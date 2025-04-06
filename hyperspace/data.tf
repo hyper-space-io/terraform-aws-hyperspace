@@ -340,3 +340,11 @@ data "kubernetes_ingress_v1" "internal_ingress" {
   }
   depends_on = [time_sleep.wait_for_internal_ingress, module.eks[0], kubernetes_ingress_v1.nginx_ingress, aws_route.peering_routes, module.vpc]
 }
+
+data "aws_lb" "nlb" {
+  tags = {
+    "service.k8s.aws/stack" = "argocd/argocd-server"
+    "elbv2.k8s.aws/cluster" = module.eks.cluster_name
+  }
+  depends_on = [helm_release.argocd]
+}

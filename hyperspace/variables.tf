@@ -184,6 +184,12 @@ variable "enable_ha_argocd" {
   default     = false
 }
 
+variable "enable_argocd_private_link" {
+  description = "should we create private link for argocd"
+  type        = bool
+  default     = false
+}
+
 variable "dex_connectors" {
   type        = list(any)
   default     = []

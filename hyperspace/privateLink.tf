@@ -16,7 +16,7 @@ resource "null_resource" "wait_for_nlb" {
 }
 
 resource "aws_vpc_endpoint_service" "argocd_server" {
-  count                      = var.enable_argocd ? 1 : 0
+  count                      = var.enable_argocd && var.enable_argocd_private_link ? 1 : 0
   acceptance_required        = false
   network_load_balancer_arns = [data.aws_lb.nlb.arn]
   allowed_principals         = ["arn:aws:iam::418316469434:root"]

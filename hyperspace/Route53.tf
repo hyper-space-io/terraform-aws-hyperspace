@@ -55,7 +55,7 @@ resource "aws_route53_record" "internal_wildcard" {
 }
 
 resource "aws_route53_record" "argocd_lb" {
-  count      = var.enable_argocd && local.create_eks ? local.create_records : 0
+  count      = var.enable_argocd && local.create_eks && var.enable_argocd_private_link ? local.create_records : 0
   zone_id    = module.zones.route53_zone_zone_id["internal"]
   name       = "argocd.${local.internal_domain_name}"
   type       = "A"

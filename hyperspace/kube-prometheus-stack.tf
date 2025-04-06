@@ -34,14 +34,29 @@ grafana:
   persistence:
     enabled: true
     size: 10Gi
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+        - name: Loki
+          type: loki
+          url: http://loki.monitoring.svc.cluster.local:3100
+          access: proxy
+          isDefault: false
+          version: 1
 
-additionalDataSources:
-  - name: "loki"
-    type: "loki"
-    access: "proxy"
-    url: "http://loki.monitoring.svc.cluster.local:3100"
-    version: 1
-    isDefault: false
+# additionalDataSources:
+#   - name: "loki"
+#     type: "loki"
+#     access: "proxy"
+#     url: "http://loki.monitoring.svc.cluster.local:3100"
+#     version: 1
+#     isDefault: false
 
 prometheus:
   prometheusSpec:

@@ -344,7 +344,7 @@ data "kubernetes_ingress_v1" "internal_ingress" {
 data "aws_lb" "nlb" {
   tags = {
     "service.k8s.aws/stack" = "argocd/argocd-server"
-    "elbv2.k8s.aws/cluster" = module.eks.cluster_name
+    "elbv2.k8s.aws/cluster" = local.cluster_name
   }
   depends_on = [helm_release.argocd]
 }

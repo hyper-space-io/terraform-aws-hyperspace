@@ -53,3 +53,18 @@ resource "aws_route53_record" "internal_wildcard" {
   records    = [data.kubernetes_ingress_v1.internal_ingress[0].status.0.load_balancer.0.ingress.0.hostname]
   depends_on = [helm_release.nginx-ingress, module.eks, module.vpc]
 }
+
+resource "aws_route53_record" "argocd_lb" {
+  count      = var.enable_argocd && local.create_eks ? local.create_records : 0
+  zone_id    = module.zones.route53_zone_zone_id["internal"]
+  name       = "argocd.${local.internal_domain_name}"
+  type       = "A"
+  
+  alias {
+    name                   = data.kubernetes_service.argocd_server[0].status.0.load_balancer.0.ingress.0.hostname
+    zone_id                = data.aws_lb.argocd_lb[0].zone_id
+    evaluate_target_health = true
+  }
+  
+  depends_on = [helm_release.argocd, data.kubernetes_service.argocd_server]
+}

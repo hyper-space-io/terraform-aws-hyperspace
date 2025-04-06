@@ -54,7 +54,7 @@ resource "helm_release" "argocd" {
         }
         extraArgs = ["--insecure"]
         ingress = {
-          enabled          = false
+          enabled          = true
           ingressClassName = "nginx-internal"
           hosts = [
             "argocd.${local.internal_domain_name}"

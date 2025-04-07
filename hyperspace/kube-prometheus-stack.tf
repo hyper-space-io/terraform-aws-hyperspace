@@ -35,13 +35,13 @@ grafana:
     enabled: true
     size: 10Gi
 
-additionalDataSources:
-  - name: "loki"
-    type: "loki"
-    access: "proxy"
-    url: "http://loki.monitoring.svc.cluster.local:3100"
-    version: 1
-    isDefault: false
+  additionalDataSources:
+    - name: "loki"
+      type: "loki"
+      access: "proxy"
+      url: "http://loki.monitoring.svc.cluster.local:3100"
+      version: 1
+      isDefault: false
 
 prometheus:
   prometheusSpec:

@@ -20,6 +20,8 @@ grafana:
   ingress:
     enabled: true
     ingressClassName: "${local.internal_ingress_class_name}"
+    hosts:
+      - "grafana.${local.internal_domain_name}"
   persistence:
     enabled: true
     size: 10Gi

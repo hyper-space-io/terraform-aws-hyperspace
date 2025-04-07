@@ -20,20 +20,6 @@ grafana:
   ingress:
     enabled: true
     ingressClassName: "${local.internal_ingress_class_name}"
-    annotations:
-      # Removing cert-manager annotations since cert-manager is not installed
-      # cert-manager.io/cluster-issuer: "prod-certmanager"
-      # acme.cert-manager.io/http01-edit-in-place: "true"
-      # Removing basic auth since the secret is set to none
-      # nginx.ingress.kubernetes.io/auth-type: basic
-      # nginx.ingress.kubernetes.io/auth-secret: none
-    hosts:
-      - "grafana.${local.internal_domain_name}"
-    # Removing TLS configuration
-    # tls:
-    #   - secretName: "monitoring-tls"
-    #     hosts:
-    #       - "grafana.${local.internal_domain_name}"
   persistence:
     enabled: true
     size: 10Gi

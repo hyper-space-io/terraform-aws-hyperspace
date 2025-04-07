@@ -56,6 +56,9 @@ promtail:
     operator: "Equal"
     value: "true"
     effect: "NoSchedule"
+
+grafana:
+  enabled: false
 EOF
   ]
   depends_on = [module.eks, module.iam_iam-assumable-role-with-oidc, module.vpc, aws_route.peering_routes]

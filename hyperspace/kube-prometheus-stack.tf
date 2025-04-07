@@ -42,6 +42,9 @@ grafana:
       url: "http://loki.monitoring.svc.cluster.local:3100"
       version: 1
       isDefault: false
+      uid: "loki"
+      jsonData: 
+        {}
 
 prometheus:
   prometheusSpec:

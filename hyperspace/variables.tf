@@ -3,6 +3,11 @@
 
 ########################
 
+variable "account_id" {
+  type        = string
+  description = "AWS account ID where resources will be deployed"
+}
+
 variable "project" {
   type        = string
   default     = "hyperspace"

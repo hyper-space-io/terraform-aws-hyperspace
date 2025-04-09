@@ -13,6 +13,11 @@ variable "hyperspace_account_id" {
   description = "The account ID of the hyperspace account"
 }
 
+variable "hyperspace_kms_key_id" {
+  type        = string
+  description = "The KMS key ID for the hyperspace account"
+}
+
 variable "environment" {
   type        = string
   default     = "development"

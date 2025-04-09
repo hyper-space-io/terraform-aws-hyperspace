@@ -36,7 +36,7 @@ resource "tfe_workspace" "app" {
   vcs_repo {
     identifier     = "hyper-space-io/Hyperspace-terraform-module"
     branch         = "simulation"
-    oauth_token_id = data.tfe_workspace.current.vcs_repo[0].oauth_token_id
+    # oauth_token_id = data.tfe_workspace.current.vcs_repo[0].oauth_token_id
   }
   working_directory = "app-module"
 }

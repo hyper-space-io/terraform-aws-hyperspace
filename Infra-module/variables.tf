@@ -35,6 +35,12 @@ variable "aws_region" {
   description = "This is used to define where resources are created and used"
 }
 
+variable "hyperspace_aws_region" {
+  type    = string
+  default = "us-east-1"
+  description = "The region of the hyperspace account"
+}
+
 ########################
 ######### VPC ##########
 ########################

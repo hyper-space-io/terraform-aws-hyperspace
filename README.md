@@ -1,4 +1,4 @@
-# Hyperspace Terraform Module
+# Hyperspace Terraform Module.
 
 ![Hyperspace Architecture](Hyperspace_architecture.png)
 

@@ -8,10 +8,9 @@ resource "helm_release" "ecr_token" {
   cleanup_on_fail = true
   depends_on      = [module.eks, module.vpc, aws_route.peering_routes, helm_release.argocd]
 
-  values = [
-    {
-      account_id = "${var.hyperspace_account_id}"
-      ECR_REGISTRY = "${var.hyperspace_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
-    }
+  values = [<<EOT
+account_id = "${var.hyperspace_account_id}"
+ECR_REGISTRY = "${var.hyperspace_account_id}.dkr.ecr.eu-west-1.amazonaws.com"
+    EOT
   ]
 }

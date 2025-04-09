@@ -3,9 +3,9 @@
 
 ########################
 
-variable "account_id" {
+variable "hyperspace_account_id" {
   type        = string
-  description = "AWS account ID where resources will be deployed"
+  description = "Hyperspace Account ID - this is used to access cross-account resources"
 }
 
 variable "project" {

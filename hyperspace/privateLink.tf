@@ -19,7 +19,7 @@ resource "aws_vpc_endpoint_service" "argocd_server" {
   count                      = var.enable_argocd && local.create_eks && var.enable_argocd_private_link ? 1 : 0
   acceptance_required        = false
   network_load_balancer_arns = [data.aws_lb.argocd_lb[0].arn]
-  allowed_principals         = ["arn:aws:iam::${var.account_id}:root"]
+  allowed_principals         = ["arn:aws:iam::${var.hyperspace_account_id}:root"]
   supported_regions          = [var.aws_region, "eu-central-1"]
   private_dns_name           = "argocd.${var.project}.${local.internal_domain_name}"
 

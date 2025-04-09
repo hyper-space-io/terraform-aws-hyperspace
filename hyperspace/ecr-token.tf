@@ -10,8 +10,8 @@ resource "helm_release" "ecr_token" {
 
   values = [
     {
-      account_id = "${var.account_id}"
-      ECR_REGISTRY = "${var.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
+      account_id = "${var.hyperspace_account_id}"
+      ECR_REGISTRY = "${var.hyperspace_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
     }
   ]
 }

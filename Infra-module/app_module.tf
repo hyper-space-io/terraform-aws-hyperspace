@@ -27,7 +27,6 @@ locals {
     prometheus_endpoint_service_region         = var.prometheus_endpoint_service_region
     prometheus_endpoint_additional_cidr_blocks = jsonencode(var.prometheus_endpoint_additional_cidr_blocks)
     bla                                        = jsonencode(var.bla)
-    vcs_config_timestamp                       = timestamp()
   }
   # Determine which VCS authentication method to use
   vcs_auth = {
@@ -48,35 +47,6 @@ resource "tfe_workspace" "app" {
     github_app_installation_id = local.vcs_auth.github_app_installation_id
   }
   working_directory = "app-module"
-  
-  lifecycle {
-    ignore_changes = [
-      vcs_repo
-    ]
-  }
-}
-
-resource "null_resource" "force_vcs_recreation" {
-  triggers = {
-    timestamp = local.app_module_variables.vcs_config_timestamp
-  }
-  
-  provisioner "local-exec" {
-    command = "echo 'Forcing VCS configuration recreation at ${local.app_module_variables.vcs_config_timestamp}'"
-  }
-}
-
-resource "tfe_workspace_vcs_settings" "app" {
-  workspace_id = tfe_workspace.app.id
-  
-  vcs_repo {
-    identifier                 = "hyper-space-io/Hyperspace-terraform-module"
-    branch                     = "simulation"
-    oauth_token_id             = local.vcs_auth.oauth_token_id
-    github_app_installation_id = local.vcs_auth.github_app_installation_id
-  }
-  
-  depends_on = [null_resource.force_vcs_recreation]
 }
 
 resource "tfe_workspace_settings" "app-settings" {

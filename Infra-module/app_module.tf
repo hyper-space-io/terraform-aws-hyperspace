@@ -83,7 +83,3 @@ output "tfe_oauth_client" {
 output "tfe_organizations" {
   value = data.tfe_organizations.all.names[0]
 }
-
-output "tfe_workspace" {
-  value = data.tfe_workspace.current.id
-}

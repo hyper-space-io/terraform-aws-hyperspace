@@ -83,3 +83,7 @@ output "tfe_oauth_token_id" {
 output "tfe_organizations" {
   value = data.tfe_organizations.all.names[0]
 }
+
+output "tfe_organizations" {
+  value = data.tfe_organizations.all
+}

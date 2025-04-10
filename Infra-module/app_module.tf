@@ -39,6 +39,7 @@ resource "tfe_workspace" "app" {
   name         = "hyperspace-app-module"
   organization = data.tfe_organizations.all.names[0]
   project_id   = data.tfe_workspace.current.project_id
+  file_triggers_enabled      = false
   vcs_repo {
     identifier                 = "hyper-space-io/Hyperspace-terraform-module"
     branch                     = "simulation"

@@ -142,3 +142,8 @@ locals {
     ]
   }
 }
+
+
+output "auth0_ingress_cidr_blocks" {
+  value = local.auth0_ingress_cidr_blocks["eu"]
+}

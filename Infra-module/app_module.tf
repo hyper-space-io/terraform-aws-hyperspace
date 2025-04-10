@@ -26,13 +26,13 @@ locals {
     prometheus_endpoint_service_name           = var.prometheus_endpoint_service_name
     prometheus_endpoint_service_region         = var.prometheus_endpoint_service_region
     prometheus_endpoint_additional_cidr_blocks = jsonencode(var.prometheus_endpoint_additional_cidr_blocks)
-    }
-    # Determine which VCS authentication method to use
-    vcs_auth = {
-      oauth_token_id             = try(data.tfe_workspace.current.vcs_repo[0].oauth_token_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].oauth_token_id : null
-      github_app_installation_id = try(data.tfe_workspace.current.vcs_repo[0].github_app_installation_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].github_app_installation_id : null
-    }
   }
+  # Determine which VCS authentication method to use
+  vcs_auth = {
+    oauth_token_id             = try(data.tfe_workspace.current.vcs_repo[0].oauth_token_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].oauth_token_id : null
+    github_app_installation_id = try(data.tfe_workspace.current.vcs_repo[0].github_app_installation_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].github_app_installation_id : null
+  }
+}
 
 resource "tfe_workspace" "app" {
   name         = "hyperspace-app-module"

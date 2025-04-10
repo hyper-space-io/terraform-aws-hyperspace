@@ -36,17 +36,17 @@ locals {
 }
 
 resource "tfe_workspace" "app" {
-  name         = "hyperspace-app-module"
-  organization = data.tfe_organizations.all.names[0]
-  project_id   = data.tfe_workspace.current.project_id
-  file_triggers_enabled      = false
+  name                  = "hyperspace-app-module"
+  organization          = data.tfe_organizations.all.names[0]
+  project_id            = data.tfe_workspace.current.project_id
+  file_triggers_enabled = false
+  working_directory     = "app-module"
   vcs_repo {
-    identifier                 = "hyper-space-io/Hyperspace-terraform-module"
+    identifier                 = "arielrahamim9/Hyperspace-terraform-module"
     branch                     = "simulation"
     oauth_token_id             = local.vcs_auth.oauth_token_id
     github_app_installation_id = local.vcs_auth.github_app_installation_id
   }
-  working_directory = "app-module"
 }
 
 resource "tfe_workspace_settings" "app-settings" {

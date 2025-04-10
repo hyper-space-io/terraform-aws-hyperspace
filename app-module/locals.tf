@@ -138,12 +138,7 @@ locals {
       "54.228.86.224/32",
       "54.73.137.216/32",
       "54.75.208.179/32",
-      "54.76.184.103/32"
+      "54.76.184.103"
     ]
   }
-}
-
-
-output "auth0_ingress_cidr_blocks" {
-  value = local.auth0_ingress_cidr_blocks["${split("-", var.aws_region)[0]}"]
 }

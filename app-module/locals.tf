@@ -145,5 +145,5 @@ locals {
 
 
 output "auth0_ingress_cidr_blocks" {
-  value = local.auth0_ingress_cidr_blocks["eu"]
+  value = local.auth0_ingress_cidr_blocks["${split("-", var.aws_region)[0]}"]
 }

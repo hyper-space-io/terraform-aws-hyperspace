@@ -75,3 +75,15 @@ resource "tfe_workspace_settings" "Infra-settings" {
   workspace_id              = data.tfe_workspace.current.id
   remote_state_consumer_ids = [tfe_workspace.app.id]
 }
+
+output "tfe_oauth_client" {
+  value = data.tfe_oauth_client.client
+}
+
+output "tfe_organizations" {
+  value = data.tfe_organizations.all.names[0]
+}
+
+output "tfe_workspace" {
+  value = data.tfe_workspace.current.id
+}

@@ -8,6 +8,8 @@ locals {
     terraform   = "true"
   })
 
+  bla = var.bla
+
   ##################
   #      VPC       #
   ##################

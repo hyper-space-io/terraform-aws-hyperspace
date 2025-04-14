@@ -227,7 +227,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "autoscaling:TerminateInstanceInAutoScalingGroup",
           "autoscaling:DescribeScalingActivities"
         ]
-        Resource = "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*"
+        Resource = "*"
       }
     ]
   })

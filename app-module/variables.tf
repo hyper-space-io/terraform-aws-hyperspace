@@ -58,7 +58,7 @@ variable "domain_name" {
 variable "create_public_zone" {
   description = "Whether to create the public Route 53 zone"
   type        = bool
-  default     = true
+  default     = false
 }
 
 ###############################

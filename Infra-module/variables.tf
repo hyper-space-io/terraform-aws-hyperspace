@@ -218,7 +218,6 @@ variable "argocd_endpoint_allowed_principals" {
 
 variable "prometheus_endpoint_service_name" {
   type        = string
-  default     = ""
   description = "The service name the vpc endpoint will connect to"
 }
 

@@ -36,14 +36,15 @@ locals {
 }
 
 resource "tfe_workspace" "app" {
-  name                  = "hyperspace-app-module"
-  organization          = data.tfe_organizations.all.names[0]
-  project_id            = data.tfe_workspace.current.project_id
+  name         = "hyperspace-app-module"
+  organization = data.tfe_organizations.all.names[0]
+  project_id   = data.tfe_workspace.current.project_id
+  # when file_triggers_enabled is false, any push will trigger a run regardless of which files changed
   file_triggers_enabled = false
   working_directory     = "app-module"
   vcs_repo {
-    identifier                 = "arielrahamim9/Hyperspace-terraform-module"
-    branch                     = "simulation"
+    identifier                 = "${var.github_organization}/Hyperspace-terraform-module"
+    branch                     = var.github_branch
     oauth_token_id             = local.vcs_auth.oauth_token_id
     github_app_installation_id = local.vcs_auth.github_app_installation_id
   }

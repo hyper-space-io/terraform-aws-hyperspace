@@ -185,6 +185,17 @@ variable "existing_agent_pool_name" {
   default     = ""
 }
 
+variable "github_organization" {
+  description = "The organization name for the github repository to fetch the app module from"
+  type        = string
+}
+
+variable "github_branch" {
+  description = "The branch name for the github repository"
+  type        = string
+  default     = "master"
+}
+
 ################################
 ###### ArgoCD Privatelink ######
 ################################

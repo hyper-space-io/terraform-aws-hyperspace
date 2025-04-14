@@ -233,8 +233,3 @@ variable "prometheus_endpoint_service_region" {
   default     = "us-east-1"
   description = "The region the prometheus vpc endpoint will connect to"
 }
-
-variable "bla" {
-  type        = string
-  description = "bla"
-}

@@ -26,7 +26,6 @@ locals {
     prometheus_endpoint_service_name           = var.prometheus_endpoint_service_name
     prometheus_endpoint_service_region         = var.prometheus_endpoint_service_region
     prometheus_endpoint_additional_cidr_blocks = jsonencode(var.prometheus_endpoint_additional_cidr_blocks)
-    bla                                        = jsonencode(var.bla)
   }
   # Determine which VCS authentication method to use
   vcs_auth = {

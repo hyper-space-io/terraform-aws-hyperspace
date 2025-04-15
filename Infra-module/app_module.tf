@@ -22,7 +22,7 @@ locals {
     create_public_zone                         = var.create_public_zone
     dex_connectors                             = jsonencode(var.dex_connectors)
     argocd_endpoint_allowed_principals         = jsonencode(var.argocd_endpoint_allowed_principals)
-    argocd_endpoint_additional_aws_regions     = var.argocd_endpoint_additional_aws_regions
+    argocd_endpoint_additional_aws_regions     = jsonencode(var.argocd_endpoint_additional_aws_regions)
     prometheus_endpoint_service_name           = var.prometheus_endpoint_service_name
     prometheus_endpoint_service_region         = var.prometheus_endpoint_service_region
     prometheus_endpoint_additional_cidr_blocks = jsonencode(var.prometheus_endpoint_additional_cidr_blocks)

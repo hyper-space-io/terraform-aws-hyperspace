@@ -184,7 +184,7 @@ variable "local_iam_policies" {
 ################################
 
 variable "argocd_endpoint_additional_aws_regions" {
-  type        = list(string)
+  type        = string
   default     = ["eu-central-1"]
   description = "The additional aws regions to enable for the argocd vpc endpoint"
 }

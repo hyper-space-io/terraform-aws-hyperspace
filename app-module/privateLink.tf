@@ -20,7 +20,7 @@ resource "aws_vpc_endpoint_service" "argocd_server" {
   acceptance_required        = false
   network_load_balancer_arns = [data.aws_lb.nlb.arn]
   allowed_principals         = local.argocd_endpoint_allowed_principals
-  supported_regions          = distinct(concat([var.aws_region], var.argocd_endpoint_additional_aws_regions))
+  supported_regions          = distinct(concat([var.aws_region], local.argocd_endpoint_additional_aws_regions))
   private_dns_name           = "argocd.${var.project}.${local.internal_domain_name}"
 
   tags = merge(local.tags, {

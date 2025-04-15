@@ -1,16 +1,16 @@
 locals {
-  tags                                   = jsondecode(var.tags)
-  vpc_module                             = jsondecode(var.vpc_module)
-  s3_bucket_names                        = jsondecode(var.s3_buckets_names)
-  s3_bucket_arns                         = jsondecode(var.s3_buckets_arns)
-  iam_policies                           = jsondecode(var.iam_policies)
-  local_iam_policies                     = jsondecode(var.local_iam_policies)
-  availability_zones                     = jsondecode(var.availability_zones)
-  worker_instance_type                   = jsondecode(var.worker_instance_type)
-  argocd_endpoint_allowed_principals     = jsondecode(var.argocd_endpoint_allowed_principals)
-  argocd_endpoint_additional_aws_regions = jsondecode(var.argocd_endpoint_additional_aws_regions)
-
-  internal_ingress_class_name            = "nginx-internal"
+  tags                                       = jsondecode(var.tags)
+  vpc_module                                 = jsondecode(var.vpc_module)
+  s3_bucket_names                            = jsondecode(var.s3_buckets_names)
+  s3_bucket_arns                             = jsondecode(var.s3_buckets_arns)
+  iam_policies                               = jsondecode(var.iam_policies)
+  local_iam_policies                         = jsondecode(var.local_iam_policies)
+  availability_zones                         = jsondecode(var.availability_zones)
+  worker_instance_type                       = jsondecode(var.worker_instance_type)
+  argocd_endpoint_allowed_principals         = jsondecode(var.argocd_endpoint_allowed_principals)
+  argocd_endpoint_additional_aws_regions     = jsondecode(var.argocd_endpoint_additional_aws_regions)
+  prometheus_endpoint_additional_cidr_blocks = jsondecode(var.prometheus_endpoint_additional_cidr_blocks)
+  internal_ingress_class_name                = "nginx-internal"
 
   alb_values = <<EOT
   vpcId: ${local.vpc_module.vpc_id}

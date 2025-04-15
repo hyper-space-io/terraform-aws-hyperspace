@@ -89,10 +89,10 @@ variable "worker_nodes_max" {
 
 variable "worker_instance_type" {
   type    = string
-  default = "[m5n.xlarge]"
+  default = "[m5n.large]"
   validation {
-    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
+    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large", "m5d.xlarge", "m5d.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large', 'm5d.xlarge', 'm5d.large']."
   }
   description = "The list of allowed instance types for worker nodes."
 }

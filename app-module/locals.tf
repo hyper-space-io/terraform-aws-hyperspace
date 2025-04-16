@@ -10,6 +10,7 @@ locals {
   argocd_endpoint_allowed_principals         = jsondecode(var.argocd_endpoint_allowed_principals)
   argocd_endpoint_additional_aws_regions     = jsondecode(var.argocd_endpoint_additional_aws_regions)
   prometheus_endpoint_additional_cidr_blocks = jsondecode(var.prometheus_endpoint_additional_cidr_blocks)
+  prometheus_remote_write_endpoint           = "https://prometheus.internal.devops-dev.hyper-space.xyz/api/v1/write"
   internal_ingress_class_name                = "nginx-internal"
 
   alb_values = <<EOT

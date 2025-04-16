@@ -192,7 +192,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
       }
     }
   }
-  depends_on = [helm_release.nginx-ingress, module.eks]
+  depends_on = [helm_release.nginx-ingress, module.eks, helm_release.kube_prometheus_stack]
 }
 
 resource "time_sleep" "wait_for_internal_ingress" {

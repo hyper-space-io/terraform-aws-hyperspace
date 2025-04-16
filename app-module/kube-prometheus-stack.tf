@@ -46,8 +46,7 @@ additionalDataSources:
 prometheus:
   prometheusSpec:
     externalLabels:
-      environment: "${var.environment}-tfc"
-      cluster: "${var.environment}-tfc"
+      cluster: "${local.cluster_name}"
     additionalScrapeConfigs:
       - job_name: "otel_collector"
         scrape_interval: "10s"
@@ -56,10 +55,7 @@ prometheus:
             - "opentelemetry-collector.opentelemetry:9100"
             - "opentelemetry-collector.opentelemetry:8888"
     remoteWrite:
-      - url: "https://prometheus.internal.devops-dev.hyper-space.xyz/api/v1/write"
-        writeRelabelConfigs:
-          - action: "labeldrop"
-            regex: "(endpoint|service|prometheus|prometheus_replica)"
+      - url: "${local.prometheus_remote_write_endpoint}"
     storageSpec:
       volumeClaimTemplate:
         spec:

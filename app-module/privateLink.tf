@@ -1,8 +1,8 @@
-resource "null_resource" "wait_for_argocd_nlb" {
+resource "null_resource" "wait_for_argocd_privatelink_nlb" {
   count = var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
-      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.argocd_nlb.arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
+      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.argocd_privatelink_nlb.arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
         echo "Waiting for NLB to become active... Current state: $STATE"
         sleep 10
       done
@@ -11,14 +11,14 @@ resource "null_resource" "wait_for_argocd_nlb" {
   }
 
   triggers = {
-    nlb_arn = data.aws_lb.argocd_nlb.arn
+    nlb_arn = data.aws_lb.argocd_privatelink_nlb.arn
   }
 }
 
 resource "aws_vpc_endpoint_service" "argocd_server" {
   count                      = var.enable_argocd ? 1 : 0
   acceptance_required        = false
-  network_load_balancer_arns = [data.aws_lb.argocd_nlb.arn]
+  network_load_balancer_arns = [data.aws_lb.argocd_privatelink_nlb.arn]
   allowed_principals         = distinct(concat(local.argocd_endpoint_allowed_principals, local.argocd_endpoint_default_allowed_principals))
   supported_regions          = distinct(concat([var.aws_region], local.argocd_endpoint_additional_aws_regions, local.argocd_endpoint_default_aws_regions))
   private_dns_name           = "argocd.${var.project}.${local.internal_domain_name}"
@@ -27,5 +27,5 @@ resource "aws_vpc_endpoint_service" "argocd_server" {
     Name = "ArgoCD Endpoint Service - ${var.project}-${var.environment}"
   })
 
-  depends_on = [null_resource.wait_for_argocd_nlb]
+  depends_on = [null_resource.wait_for_argocd_privatelink_nlb]
 }

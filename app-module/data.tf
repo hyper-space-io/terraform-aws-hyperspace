@@ -52,7 +52,7 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
-data "aws_lb" "argocd_nlb" {
+data "aws_lb" "argocd_privatelink_nlb" {
   tags = {
     "service.k8s.aws/stack" = "argocd/argocd-server"
     "elbv2.k8s.aws/cluster" = module.eks.cluster_name

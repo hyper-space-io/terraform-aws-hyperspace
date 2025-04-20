@@ -94,8 +94,8 @@ resource "null_resource" "argocd_setup" {
       argocd account update-password \
         --account hyperspace \
         --current-password $ARGOCD_PASSWORD \
-        --new-password hyperspace \ 
-        && echo "Hyperspace User password updated successfully!"
+        --new-password hyperspace
+      echo "Hyperspace User password updated successfully!"
     EOT
   }
   depends_on = [helm_release.argocd, null_resource.wait_for_internal_ingress]

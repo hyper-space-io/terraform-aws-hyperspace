@@ -81,30 +81,21 @@ resource "helm_release" "argocd" {
 resource "null_resource" "argocd_setup" {
   count = var.create_eks ? 1 : 0
 
-  depends_on = [helm_release.argocd]
-
   provisioner "local-exec" {
     command = <<-EOT
-      echo "Installing ArgoCD CLI..."
-      VERSION=$(curl -L -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/VERSION)
-      curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v$VERSION/argocd-linux-amd64
-      sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
-      rm argocd-linux-amd64
-
       echo "Getting ArgoCD admin password..."
       ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
       echo "Logging in to ArgoCD..."
       argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure
 
-      echo "Updating hyperspace user password..."
+      echo "Updating user: hyperspace password..."
       argocd account update-password \
         --account hyperspace \
         --current-password $ARGOCD_PASSWORD \
-        --new-password hyperspace
-
-      echo "Setup completed successfully!"
+        --new-password hyperspace \ 
+        && echo "Hyperspace User password updated successfully!"
     EOT
   }
+  depends_on = [helm_release.argocd]
 }
-

@@ -84,18 +84,37 @@ sudo docker run -d \
     --restart=unless-stopped \
     -e TFC_AGENT_TOKEN=${tfc_agent_token} \
     -e TFC_AGENT_NAME=terraform-agent \
-    hashicorp/tfc-agent:latest || echo "Failed to start Terraform Cloud Agent container."
+    hashicorp/tfc-agent:latest || { log "Failed to start Terraform Cloud Agent container."; exit 1; }
 
-# Wait for 30 seconds to ensure the container is running
-sleep 30
+# Wait for container to be running
+log "Waiting for Terraform Cloud Agent container to start..."
+until sudo docker ps --filter "name=terraform-agent" --filter "status=running" --format "{{.Names}}"; do
+    log "Waiting for container to start..."
+    sleep 3
+done
+log "Terraform Cloud Agent container is running"
 
-# Install AWS CLI in container
-sudo docker exec -u root terraform-agent sh -c "apt-get update && \
+# Install AWS CLI and ArgoCD CLI in container
+log "Installing AWS CLI and ArgoCD CLI in container..."
+sudo docker exec -u root terraform-agent sh -c "
+    # Install AWS CLI
+    apt-get update && \
     apt-get install -y unzip curl && \
     curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o awscliv2.zip && \
     unzip awscliv2.zip && \
     ./aws/install && \
-    rm -rf aws awscliv2.zip" || { echo "Failed to install AWS CLI in container" ; exit 1; }
+    aws --version || { echo 'Failed to install AWS CLI'; exit 1; } && \
+
+    # Install ArgoCD CLI
+    VERSION=\$(curl -L -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/VERSION) && \
+    curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v\$VERSION/argocd-linux-amd64 && \
+    install -m 555 argocd-linux-amd64 /usr/local/bin/argocd && \
+    argocd version --client || { echo 'Failed to install ArgoCD CLI'; exit 1; } && \
+
+    # Cleanup
+    rm -rf aws awscliv2.zip argocd-linux-amd64" || { log "Failed to install tools in container"; exit 1; }
+
+log "Terraform Cloud Agent setup completed successfully"
 EOF
 
 chmod +x /var/lib/cloud/scripts/per-boot/tfc-agent-start.sh || { log "Failed to make tfc-agent-start.sh executable."; exit 1; }

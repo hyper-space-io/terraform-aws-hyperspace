@@ -1,5 +1,17 @@
 locals {
-  prometheus_release_name = "kube-prometheus-stack"
+  prometheus_release_name      = "kube-prometheus-stack"
+  prometheus_crds_release_name = "prometheus-operator-crds"
+}
+
+resource "helm_release" "prometheus_operator_crds" {
+  count            = var.create_eks ? 1 : 0
+  name             = local.prometheus_crds_release_name
+  chart            = local.prometheus_crds_release_name
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  version          = "17.0.2"
+  namespace        = "monitoring"
+  create_namespace = true
+  cleanup_on_fail  = true
 }
 
 resource "helm_release" "kube_prometheus_stack" {
@@ -15,6 +27,9 @@ resource "helm_release" "kube_prometheus_stack" {
 global:
   imagePullSecrets:
     - name: "regcred-secret"
+
+crds:
+  enabled: false
 
 grafana:
   ingress:
@@ -82,7 +97,7 @@ EOF
     name  = "grafana.adminPassword"
     value = random_password.grafana_admin_password.result
   }
-  depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
+  depends_on = [module.eks, time_sleep.wait_for_internal_ingress, helm_release.prometheus_operator_crds]
 }
 
 # resource "kubernetes_ingress_v1" "grafana_ingress" {

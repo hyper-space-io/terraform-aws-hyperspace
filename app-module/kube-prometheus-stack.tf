@@ -106,7 +106,8 @@ EOF
     name  = "adminPassword"
     value = random_password.grafana_admin_password.result
   }
-  depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
+  
+  depends_on = [module.eks, null_resource.wait_for_internal_ingress]
 }
 
 resource "helm_release" "prometheus_adapter" {

@@ -111,6 +111,12 @@ sudo docker exec -u root terraform-agent sh -c "
     install -m 555 argocd-linux-amd64 /usr/local/bin/argocd && \
     argocd version --client || { echo 'Failed to install ArgoCD CLI'; exit 1; } && \
 
+    # Install Kubectl
+    curl -LO "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin/kubectl && \
+    kubectl version --client || { echo 'Failed to install Kubectl'; exit 1; } && \
+
     # Cleanup
     rm -rf aws awscliv2.zip argocd-linux-amd64" || { log "Failed to install tools in container"; exit 1; }
 

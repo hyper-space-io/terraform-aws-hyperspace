@@ -84,6 +84,7 @@ resource "null_resource" "argocd_setup" {
   provisioner "local-exec" {
     command = <<-EOT
       echo "Getting ArgoCD admin password..."
+      aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.aws_region}
       ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
       echo "Logging in to ArgoCD..."
@@ -97,5 +98,5 @@ resource "null_resource" "argocd_setup" {
         && echo "Hyperspace User password updated successfully!"
     EOT
   }
-  depends_on = [helm_release.argocd]
+  depends_on = [helm_release.argocd, null_resource.wait_for_internal_ingress]
 }

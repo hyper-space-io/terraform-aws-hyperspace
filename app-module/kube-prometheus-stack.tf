@@ -18,7 +18,19 @@ global:
 
 grafana:
   ingress:
-    enabled: false
+    enabled: true
+    ingressClassName: "${local.internal_ingress_class_name}"
+    annotations:
+      cert-manager.io/cluster-issuer: "prod-certmanager"
+      acme.cert-manager.io/http01-edit-in-place: "true"
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: none
+    hosts:
+      - "grafana.${local.internal_domain_name}"
+    tls:
+      - secretName: "monitoring-tls"
+        hosts:
+          - "grafana.${local.internal_domain_name}"
   persistence:
     enabled: true
     size: 10Gi
@@ -70,52 +82,52 @@ EOF
     name  = "grafana.adminPassword"
     value = random_password.grafana_admin_password.result
   }
-  depends_on = [module.eks]
+  depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
 }
 
-resource "kubernetes_ingress_v1" "grafana_ingress" {
-  count = var.create_eks ? 1 : 0
-  
-  metadata {
-    name      = "kube-prometheus-stack-grafana"
-    namespace = "monitoring"
-    annotations = {
-      "cert-manager.io/cluster-issuer" = "prod-certmanager"
-      "acme.cert-manager.io/http01-edit-in-place" = "true"
-      "nginx.ingress.kubernetes.io/auth-type" = "basic"
-      "nginx.ingress.kubernetes.io/auth-secret" = "none"
-    }
-  }
-  
-  spec {
-    ingress_class_name = local.internal_ingress_class_name
-    
-    rule {
-      host = "grafana.${local.internal_domain_name}"
-      http {
-        path {
-          path = "/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = "kube-prometheus-stack-grafana"
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    tls {
-      secret_name = "monitoring-tls"
-      hosts = ["grafana.${local.internal_domain_name}"]
-    }
-  }
-  
-  depends_on = [helm_release.kube_prometheus_stack, time_sleep.wait_for_internal_ingress]
-}
+# resource "kubernetes_ingress_v1" "grafana_ingress" {
+#   count = var.create_eks ? 1 : 0
+
+#   metadata {
+#     name      = "kube-prometheus-stack-grafana"
+#     namespace = "monitoring"
+#     annotations = {
+#       "cert-manager.io/cluster-issuer" = "prod-certmanager"
+#       "acme.cert-manager.io/http01-edit-in-place" = "true"
+#       "nginx.ingress.kubernetes.io/auth-type" = "basic"
+#       "nginx.ingress.kubernetes.io/auth-secret" = "none"
+#     }
+#   }
+
+#   spec {
+#     ingress_class_name = local.internal_ingress_class_name
+
+#     rule {
+#       host = "grafana.${local.internal_domain_name}"
+#       http {
+#         path {
+#           path = "/"
+#           path_type = "Prefix"
+#           backend {
+#             service {
+#               name = "kube-prometheus-stack-grafana"
+#               port {
+#                 number = 80
+#               }
+#             }
+#           }
+#         }
+#       }
+#     }
+
+#     tls {
+#       secret_name = "monitoring-tls"
+#       hosts = ["grafana.${local.internal_domain_name}"]
+#     }
+#   }
+
+#   depends_on = [helm_release.kube_prometheus_stack, time_sleep.wait_for_internal_ingress]
+# }
 
 resource "helm_release" "prometheus_adapter" {
   name       = "prometheus-adapter"

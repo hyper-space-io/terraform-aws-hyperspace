@@ -25,8 +25,9 @@ resource "helm_release" "argocd" {
           "policy.csv"     = try(join("\n", var.argocd_rbac_policy_rules), "")
         }
         cm = {
-          "exec.enabled"           = "false"
-          "timeout.reconciliation" = "5s"
+          "exec.enabled"                           = "false"
+          "timeout.reconciliation"                 = "5s"
+          "accounts.hyperspace"                    = "login"
           "dex.config" = yamlencode({
             connectors = [
               for connector in jsondecode(var.dex_connectors) : {
@@ -74,24 +75,4 @@ resource "helm_release" "argocd" {
       }
     })
   ]
-}
-
-resource "kubernetes_config_map" "argocd_cm" {
-  count = var.enable_argocd ? 1 : 0
-
-  metadata {
-    name      = "argocd-cm-${var.environment}"
-    namespace = "argocd"
-    labels = {
-      "app.kubernetes.io/name"    = "argocd-cm-${var.environment}"
-      "app.kubernetes.io/part-of" = "argocd"
-    }
-  }
-
-  data = {
-    "accounts.hyperspace"         = "login"
-    "accounts.hyperspace.enabled" = "true"
-  }
-
-  depends_on = [helm_release.argocd]
 }

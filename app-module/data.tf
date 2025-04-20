@@ -52,10 +52,31 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
-data "aws_lb" "nlb" {
+data "aws_lb" "argocd_nlb" {
   tags = {
     "service.k8s.aws/stack" = "argocd/argocd-server"
     "elbv2.k8s.aws/cluster" = module.eks.cluster_name
   }
   depends_on = [helm_release.argocd]
+}
+
+data "aws_lb" "internal_alb" {
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["internal"]]
+
+  tags = {
+    "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
+    "ingress.k8s.aws/resource" = "LoadBalancer"
+    "ingress.k8s.aws/stack"    = "ingress/internal-ingress"
+  }
+}
+
+data "aws_lb" "external_alb" {
+  count      = var.create_public_zone ? 1 : 0
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["external"]]
+
+  tags = {
+    "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
+    "ingress.k8s.aws/resource" = "LoadBalancer"
+    "ingress.k8s.aws/stack"    = "ingress/external-ingress"
+  }
 }

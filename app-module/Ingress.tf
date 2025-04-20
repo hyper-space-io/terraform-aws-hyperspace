@@ -128,9 +128,8 @@ controller:
           topologyKey: "kubernetes.io/hostname"
   EOF
   ]
-  depends_on = [module.eks_blueprints_addons, module.acm, module.eks, helm_release.prometheus_operator_crds]
+  depends_on = [module.eks_blueprints_addons, module.acm, module.eks, helm_release.kube_prometheus_stack]
 }
-
 
 resource "kubernetes_ingress_v1" "nginx_ingress" {
   for_each = var.create_eks ? local.combined_ingress_config : {}
@@ -141,7 +140,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
       "alb.ingress.kubernetes.io/certificate-arn"          = local.create_acm ? (each.key == "internal" ? module.acm["internal_acm"].acm_certificate_arn : module.acm["external_acm"].acm_certificate_arn) : ""
       "alb.ingress.kubernetes.io/scheme"                   = "${each.value.scheme}"
       "alb.ingress.kubernetes.io/load-balancer-attributes" = "idle_timeout.timeout_seconds=600, access_logs.s3.enabled=true, access_logs.s3.bucket=${local.s3_bucket_names["logs-ingress"]},access_logs.s3.prefix=${each.value.s3_prefix}"
-      "alb.ingress.kubernetes.io/actions.ssl-redirect"     = (each.key == "internal" && module.acm["internal_acm"].acm_certificate_arn != "") || (each.key == "external" && var.create_public_zone && var.domain_name != "") ? jsonencode({
+      "alb.ingress.kubernetes.io/actions.ssl-redirect" = (each.key == "internal" && module.acm["internal_acm"].acm_certificate_arn != "") || (each.key == "external" && var.create_public_zone && var.domain_name != "") ? jsonencode({
         Type = "redirect"
         RedirectConfig = {
           Protocol   = "HTTPS"
@@ -195,13 +194,35 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
   depends_on = [helm_release.nginx-ingress, module.eks]
 }
 
-resource "time_sleep" "wait_for_internal_ingress" {
-  create_duration = "300s"
-  depends_on      = [kubernetes_ingress_v1.nginx_ingress["internal"]]
+resource "null_resource" "wait_for_internal_ingress" {
+  provisioner "local-exec" {
+    command = <<EOF
+      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.internal_alb.arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
+        echo "Waiting for internal ALB to become active... Current state: $STATE"
+        sleep 10
+      done
+      echo "Internal ALB is now active"
+    EOF
+  }
+
+  triggers = {
+    internal_alb_arn = data.aws_lb.internal_alb.arn
+  }
 }
 
-resource "time_sleep" "wait_for_external_ingress" {
-  count           = var.create_public_zone ? 1 : 0
-  create_duration = "300s"
-  depends_on      = [kubernetes_ingress_v1.nginx_ingress["external"]]
+resource "null_resource" "wait_for_external_ingress" {
+  count = var.create_public_zone ? 1 : 0
+  provisioner "local-exec" {
+    command = <<EOF
+      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.external_alb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
+        echo "Waiting for external ALB to become active... Current state: $STATE"
+        sleep 10
+      done
+      echo "External ALB is now active"
+    EOF
+  }
+
+  triggers = {
+    external_alb_arn = data.aws_lb.external_alb[0].arn
+  }
 }

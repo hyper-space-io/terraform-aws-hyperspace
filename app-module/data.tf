@@ -27,7 +27,7 @@ data "kubernetes_ingress_v1" "external_ingress" {
     name      = "external-ingress"
     namespace = "ingress"
   }
-  depends_on = [null_resource.wait_for_external_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
+  depends_on = [null_resource.external_ingress_active, module.eks, kubernetes_ingress_v1.nginx_ingress]
 }
 
 data "kubernetes_ingress_v1" "internal_ingress" {
@@ -35,7 +35,7 @@ data "kubernetes_ingress_v1" "internal_ingress" {
     name      = "internal-ingress"
     namespace = "ingress"
   }
-  depends_on = [null_resource.wait_for_internal_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
+  depends_on = [null_resource.internal_ingress_active, module.eks, kubernetes_ingress_v1.nginx_ingress]
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -52,7 +52,7 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
-resource "null_resource" "wait_for_argocd_privatelink_nlb" {
+resource "null_resource" "argocd_privatelink_nlb_sleep" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = "sleep 30"
@@ -67,10 +67,10 @@ data "aws_lb" "argocd_privatelink_nlb" {
     "service.k8s.aws/stack"    = "argocd/argocd-server"
   }
 
-  depends_on = [null_resource.wait_for_argocd_privatelink_nlb]
+  depends_on = [null_resource.argocd_privatelink_nlb_sleep]
 }
 
-resource "null_resource" "wait_for_internal_ingress" {
+resource "null_resource" "internal_ingress_sleep" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = "sleep 30"
@@ -85,10 +85,10 @@ data "aws_lb" "internal_alb" {
     "ingress.k8s.aws/stack"    = "ingress/internal-ingress"
   }
 
-  depends_on = [kubernetes_ingress_v1.nginx_ingress["internal"], null_resource.wait_for_internal_ingress]
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["internal"], null_resource.internal_ingress_sleep]
 }
 
-resource "null_resource" "wait_for_external_ingress" {
+resource "null_resource" "external_ingress_sleep" {
   count = var.create_eks && var.create_public_zone ? 1 : 0
   provisioner "local-exec" {
     command = "sleep 30"
@@ -103,5 +103,5 @@ data "aws_lb" "external_alb" {
     "ingress.k8s.aws/stack"    = "ingress/external-ingress"
   }
 
-  depends_on = [kubernetes_ingress_v1.nginx_ingress["external"], null_resource.wait_for_external_ingress]
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["external"], null_resource.external_ingress_sleep]
 }

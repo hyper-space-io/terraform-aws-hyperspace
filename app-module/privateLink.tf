@@ -1,4 +1,4 @@
-resource "null_resource" "wait_for_argocd_privatelink_nlb" {
+resource "null_resource" "argocd_privatelink_nlb_active" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
@@ -27,5 +27,5 @@ resource "aws_vpc_endpoint_service" "argocd_server" {
     Name = "ArgoCD Endpoint Service - ${var.project}-${var.environment}"
   })
 
-  depends_on = [null_resource.wait_for_argocd_privatelink_nlb]
+  depends_on = [null_resource.argocd_privatelink_nlb_active]
 }

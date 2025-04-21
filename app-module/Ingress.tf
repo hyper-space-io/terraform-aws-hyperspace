@@ -194,7 +194,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
   depends_on = [helm_release.nginx-ingress, module.eks]
 }
 
-resource "null_resource" "wait_for_internal_ingress" {
+resource "null_resource" "internal_ingress_active" {
   provisioner "local-exec" {
     command = <<EOF
       until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.internal_alb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
@@ -210,7 +210,7 @@ resource "null_resource" "wait_for_internal_ingress" {
   }
 }
 
-resource "null_resource" "wait_for_external_ingress" {
+resource "null_resource" "external_ingress_active" {
   count = var.create_public_zone ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF

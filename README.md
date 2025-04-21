@@ -218,6 +218,7 @@ module "hyperspace" {
   dex_connectors       = [] # Add your authentication connectors here
 }
 ```
+- fork this repo
 
 # Important Notes
 

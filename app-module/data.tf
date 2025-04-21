@@ -53,11 +53,11 @@ data "aws_ami" "fpga" {
 #######################
 
 data "aws_lb" "argocd_privatelink_nlb" {
-  count = var.create_eks ? 1 : 0
+  count = var.create_eks && var.enable_argocd ? 1 : 0
   tags = {
     "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
-    "ingress.k8s.aws/resource" = "LoadBalancer"
-    "ingress.k8s.aws/stack"    = "argocd/argocd-server"
+    "service.k8s.aws/resource" = "LoadBalancer"
+    "service.k8s.aws/stack"    = "argocd/argocd-server"
   }
 
   depends_on = [helm_release.argocd]

@@ -1,5 +1,5 @@
 resource "helm_release" "argocd" {
-  count            = var.create_eks ? 1 : 0
+  count            = var.create_eks && var.enable_argocd ? 1 : 0
   chart            = "argo-cd"
   namespace        = "argocd"
   name             = "argocd"
@@ -79,7 +79,7 @@ resource "helm_release" "argocd" {
 
 # Execute ArgoCD CLI setup and password update
 resource "null_resource" "argocd_setup" {
-  count = var.create_eks ? 1 : 0
+  count = var.create_eks && var.enable_argocd ? 1 : 0
 
   provisioner "local-exec" {
     command = <<-EOT

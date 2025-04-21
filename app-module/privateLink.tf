@@ -1,5 +1,5 @@
 resource "null_resource" "wait_for_argocd_privatelink_nlb" {
-  count = var.enable_argocd ? 1 : 0
+  count = var.create_eks && var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
       until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.argocd_privatelink_nlb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
@@ -16,7 +16,7 @@ resource "null_resource" "wait_for_argocd_privatelink_nlb" {
 }
 
 resource "aws_vpc_endpoint_service" "argocd_server" {
-  count                      = var.enable_argocd ? 1 : 0
+  count                      = var.create_eks && var.enable_argocd ? 1 : 0
   acceptance_required        = false
   network_load_balancer_arns = [data.aws_lb.argocd_privatelink_nlb[0].arn]
   allowed_principals         = distinct(concat(local.argocd_endpoint_allowed_principals, local.argocd_endpoint_default_allowed_principals))

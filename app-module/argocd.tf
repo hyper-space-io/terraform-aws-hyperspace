@@ -101,10 +101,10 @@ resource "null_resource" "argocd_setup" {
       echo "Hyperspace User password updated successfully!"
     EOT
   }
-  depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb]
+  depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb[0]]
   triggers = [
-    helm_release.argocd.id,
-    data.aws_lb.argocd_privatelink_nlb.id,
+    helm_release.argocd[0].id,
+    data.aws_lb.argocd_privatelink_nlb[0].id,
     timestamp()
   ]
 }

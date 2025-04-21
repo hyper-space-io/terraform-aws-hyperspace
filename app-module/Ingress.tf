@@ -194,35 +194,13 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
   depends_on = [helm_release.nginx-ingress, module.eks]
 }
 
-resource "null_resource" "internal_ingress_active" {
-  provisioner "local-exec" {
-    command = <<EOF
-      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.internal_alb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
-        echo "Waiting for internal ALB to become active... Current state: $STATE"
-        sleep 10
-      done
-      echo "Internal ALB is now active"
-    EOF
-  }
-
-  triggers = {
-    internal_alb_arn = data.aws_lb.internal_alb[0].arn
-  }
+resource "time_sleep" "wait_for_internal_ingress" {
+  create_duration = "180s"
+  depends_on      = [kubernetes_ingress_v1.nginx_ingress["internal"]]
 }
 
-resource "null_resource" "external_ingress_active" {
-  count = var.create_public_zone ? 1 : 0
-  provisioner "local-exec" {
-    command = <<EOF
-      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.external_alb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
-        echo "Waiting for external ALB to become active... Current state: $STATE"
-        sleep 10
-      done
-      echo "External ALB is now active"
-    EOF
-  }
-
-  triggers = {
-    external_alb_arn = data.aws_lb.external_alb[0].arn
-  }
+resource "time_sleep" "wait_for_external_ingress" {
+  count           = var.create_public_zone ? 1 : 0
+  create_duration = "180s"
+  depends_on      = [kubernetes_ingress_v1.nginx_ingress["external"]]
 }

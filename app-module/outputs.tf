@@ -15,6 +15,6 @@ output "aws_vpc_endpoint_service_domain_verification_value" {
 #######################
 
 output "acm_certificate_domain_validation_options" {
-  value       = module.acm.acm_certificate_domain_validation_options
-  description = "A list of attributes to feed into other resources to complete certificate validation. Can have more than one element, e.g. if SANs are defined. Only set if DNS-validation was used."
+  value       = { for k, v in module.acm : k => v.acm_certificate_domain_validation_options }
+  description = "A map of ACM certificate domain validation options, keyed by certificate name (internal_acm or external_acm)."
 }

@@ -2,7 +2,7 @@ resource "null_resource" "wait_for_argocd_privatelink_nlb" {
   count = var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
-      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.argocd_privatelink_nlb.arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
+      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.argocd_privatelink_nlb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
         echo "Waiting for NLB to become active... Current state: $STATE"
         sleep 10
       done
@@ -11,7 +11,7 @@ resource "null_resource" "wait_for_argocd_privatelink_nlb" {
   }
 
   triggers = {
-    nlb_arn = data.aws_lb.argocd_privatelink_nlb.arn
+    nlb_arn = data.aws_lb.argocd_privatelink_nlb[0].arn
   }
 }
 

@@ -52,6 +52,13 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
+resource "null_resource" "wait_for_argocd_privatelink_nlb" {
+  count = var.create_eks && var.enable_argocd ? 1 : 0
+  provisioner "local-exec" {
+    command = "sleep 30"
+  }
+}
+
 data "aws_lb" "argocd_privatelink_nlb" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
   tags = {
@@ -60,7 +67,14 @@ data "aws_lb" "argocd_privatelink_nlb" {
     "service.k8s.aws/stack"    = "argocd/argocd-server"
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [null_resource.wait_for_argocd_privatelink_nlb]
+}
+
+resource "null_resource" "wait_for_internal_ingress" {
+  count = var.create_eks && var.enable_argocd ? 1 : 0
+  provisioner "local-exec" {
+    command = "sleep 30"
+  }
 }
 
 data "aws_lb" "internal_alb" {
@@ -71,7 +85,14 @@ data "aws_lb" "internal_alb" {
     "ingress.k8s.aws/stack"    = "ingress/internal-ingress"
   }
 
-  depends_on = [kubernetes_ingress_v1.nginx_ingress["internal"]]
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["internal"], null_resource.wait_for_internal_ingress]
+}
+
+resource "null_resource" "wait_for_external_ingress" {
+  count = var.create_eks && var.create_public_zone ? 1 : 0
+  provisioner "local-exec" {
+    command = "sleep 30"
+  }
 }
 
 data "aws_lb" "external_alb" {
@@ -82,5 +103,5 @@ data "aws_lb" "external_alb" {
     "ingress.k8s.aws/stack"    = "ingress/external-ingress"
   }
 
-  depends_on = [kubernetes_ingress_v1.nginx_ingress["external"]]
+  depends_on = [kubernetes_ingress_v1.nginx_ingress["external"], null_resource.wait_for_external_ingress]
 }

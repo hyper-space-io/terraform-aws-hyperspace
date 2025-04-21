@@ -40,6 +40,7 @@ resource "tfe_workspace" "app" {
   project_id   = data.tfe_workspace.current.project_id
   # when file_triggers_enabled is false, any push will trigger a run regardless of which files changed
   file_triggers_enabled = false
+  queue_all_runs        = false
   working_directory     = "app-module"
   vcs_repo {
     identifier                 = "${var.github_organization}/Hyperspace-terraform-module"

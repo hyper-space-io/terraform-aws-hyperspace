@@ -52,20 +52,20 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
-resource "null_resource" "argocd_privatelink_nlb_sleep" {
-  count = var.create_eks && var.enable_argocd ? 1 : 0
-  provisioner "local-exec" {
-    command = "sleep 180"
-  }
-}
+# resource "null_resource" "argocd_privatelink_nlb_sleep" {
+#   count = var.create_eks && var.enable_argocd ? 1 : 0
+#   provisioner "local-exec" {
+#     command = "sleep 180"
+#   }
+# }
 
-data "aws_lb" "argocd_privatelink_nlb" {
-  count = var.create_eks && var.enable_argocd ? 1 : 0
-  tags = {
-    "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
-    "service.k8s.aws/resource" = "LoadBalancer"
-    "service.k8s.aws/stack"    = "argocd/argocd-server"
-  }
+# data "aws_lb" "argocd_privatelink_nlb" {
+#   count = var.create_eks && var.enable_argocd ? 1 : 0
+#   tags = {
+#     "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
+#     "service.k8s.aws/resource" = "LoadBalancer"
+#     "service.k8s.aws/stack"    = "argocd/argocd-server"
+#   }
 
-  depends_on = [null_resource.argocd_privatelink_nlb_sleep]
-}
+#   depends_on = [null_resource.argocd_privatelink_nlb_sleep]
+# }

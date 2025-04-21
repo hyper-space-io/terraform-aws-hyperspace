@@ -80,17 +80,20 @@ resource "helm_release" "argocd" {
 # Execute ArgoCD CLI setup and password update
 resource "null_resource" "argocd_setup" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
-
   provisioner "local-exec" {
     command = <<-EOT
       echo "Getting ArgoCD admin password..."
       aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.aws_region}
       ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+      ARGOCD_LOGIN=argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure
 
-      echo "Logging in to ArgoCD..."
-      argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure
-
-      echo "Updating user: hyperspace password..."
+      until $ARGOCD_LOGIN; do
+        echo "Login attempt failed. Waiting 10 seconds before retrying..."
+        sleep 10
+      done
+      
+      echo "Successfully logged in to ArgoCD!"
+      echo "Updating hyperspace user password..."
       argocd account update-password \
         --account hyperspace \
         --current-password $ARGOCD_PASSWORD \
@@ -98,5 +101,10 @@ resource "null_resource" "argocd_setup" {
       echo "Hyperspace User password updated successfully!"
     EOT
   }
-  depends_on = [helm_release.argocd, time_sleep.wait_for_internal_ingress]
+  depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb]
+  triggers = [
+    helm_release.argocd.id,
+    data.aws_lb.argocd_privatelink_nlb.id,
+    timestamp()
+  ]
 }

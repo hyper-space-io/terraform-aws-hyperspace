@@ -98,5 +98,5 @@ resource "null_resource" "argocd_setup" {
       echo "Hyperspace User password updated successfully!"
     EOT
   }
-  depends_on = [helm_release.argocd, null_resource.internal_ingress_active]
+  depends_on = [helm_release.argocd, time_sleep.wait_for_internal_ingress]
 }

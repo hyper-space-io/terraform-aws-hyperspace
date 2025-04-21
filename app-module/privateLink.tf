@@ -27,5 +27,5 @@ resource "aws_vpc_endpoint_service" "argocd_server" {
     Name = "ArgoCD Endpoint Service - ${var.project}-${var.environment}"
   })
 
-  depends_on = [null_resource.argocd_privatelink_nlb_active]
+  depends_on = [data.aws_lb.argocd_privatelink_nlb[0]]
 }

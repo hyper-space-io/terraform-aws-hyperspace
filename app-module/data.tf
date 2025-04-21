@@ -55,7 +55,7 @@ data "aws_ami" "fpga" {
 resource "null_resource" "argocd_privatelink_nlb_sleep" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
   provisioner "local-exec" {
-    command = "sleep 30"
+    command = "sleep 180"
   }
 }
 

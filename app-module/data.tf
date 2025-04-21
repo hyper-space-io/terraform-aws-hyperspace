@@ -53,15 +53,18 @@ data "aws_ami" "fpga" {
 #######################
 
 data "aws_lb" "argocd_privatelink_nlb" {
+  count = var.create_eks ? 1 : 0
   tags = {
-    "service.k8s.aws/stack" = "argocd/argocd-server"
-    "elbv2.k8s.aws/cluster" = module.eks.cluster_name
+    "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
+    "ingress.k8s.aws/resource" = "LoadBalancer"
+    "ingress.k8s.aws/stack"    = "argocd/argocd-server"
   }
 
   depends_on = [helm_release.argocd]
 }
 
 data "aws_lb" "internal_alb" {
+  count = var.create_eks ? 1 : 0
   tags = {
     "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
     "ingress.k8s.aws/resource" = "LoadBalancer"
@@ -72,8 +75,7 @@ data "aws_lb" "internal_alb" {
 }
 
 data "aws_lb" "external_alb" {
-  count = var.create_public_zone ? 1 : 0
-
+  count = var.create_eks && var.create_public_zone ? 1 : 0
   tags = {
     "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
     "ingress.k8s.aws/resource" = "LoadBalancer"

@@ -197,7 +197,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
 resource "null_resource" "wait_for_internal_ingress" {
   provisioner "local-exec" {
     command = <<EOF
-      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.internal_alb.arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
+      until STATE=$(aws elbv2 describe-load-balancers --load-balancer-arns ${data.aws_lb.internal_alb[0].arn} --query 'LoadBalancers[0].State.Code' --output text) && [ "$STATE" = "active" ]; do
         echo "Waiting for internal ALB to become active... Current state: $STATE"
         sleep 10
       done
@@ -206,7 +206,7 @@ resource "null_resource" "wait_for_internal_ingress" {
   }
 
   triggers = {
-    internal_alb_arn = data.aws_lb.internal_alb.arn
+    internal_alb_arn = data.aws_lb.internal_alb[0].arn
   }
 }
 

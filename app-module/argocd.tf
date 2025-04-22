@@ -85,9 +85,9 @@ resource "null_resource" "argocd_setup" {
       echo "Getting ArgoCD admin password..."
       aws eks update-kubeconfig --name ${local.cluster_name} --region ${var.aws_region}
       ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-      ARGOCD_LOGIN=argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure
 
-      until $ARGOCD_LOGIN; do
+      echo "Logging in to ArgoCD..."
+      until argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure; do
         echo "Login attempt failed. Waiting 10 seconds before retrying..."
         sleep 10
       done

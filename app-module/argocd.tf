@@ -79,11 +79,7 @@ resource "helm_release" "argocd" {
 
 resource "random_password" "argocd_readonly" {
   count            = var.create_eks && var.enable_argocd ? 1 : 0
-  length           = 8
-  min_numeric      = 4
-  min_upper        = 4
-  min_lower        = 4
-  min_special      = 4
+  length           = 16
 }
 
 resource "aws_secretsmanager_secret" "argocd_readonly_password" {

@@ -114,7 +114,7 @@ resource "null_resource" "argocd_setup" {
       argocd account update-password \
         --account hyperspace \
         --current-password $ARGOCD_PASSWORD \
-        --new-password ${random_password.argocd_readonly.result[0]}
+        --new-password ${random_password.argocd_readonly[count.index].result}
       echo "Hyperspace User password updated successfully!"
     EOT
   }

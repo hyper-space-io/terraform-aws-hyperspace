@@ -102,9 +102,9 @@ resource "null_resource" "argocd_setup" {
     EOT
   }
   depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb[0]]
-  triggers = [
-    helm_release.argocd[0].id,
-    data.aws_lb.argocd_privatelink_nlb[0].id,
-    timestamp()
-  ]
+  triggers = {
+    helm_release_id = helm_release.argocd[0].id
+    nlb_id = data.aws_lb.argocd_privatelink_nlb[0].id
+    timestamp = timestamp()
+  }
 }

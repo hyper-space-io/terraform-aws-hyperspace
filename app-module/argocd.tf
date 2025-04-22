@@ -104,7 +104,7 @@ resource "null_resource" "argocd_setup" {
       ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
       echo "Logging in to ArgoCD..."
-      until argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure; do
+      until argocd login argocd.${local.internal_domain_name} --username admin --password $ARGOCD_PASSWORD --insecure --grpc-web; do
         echo "Login attempt failed. Waiting 10 seconds before retrying..."
         sleep 10
       done
@@ -119,4 +119,8 @@ resource "null_resource" "argocd_setup" {
     EOT
   }
   depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb[0]]
+  triggers = {
+    helm_release_id = helm_release.argocd[count.index].id
+    readonly_password = random_password.argocd_readonly[count.index].result
+  }
 }

@@ -77,6 +77,27 @@ resource "helm_release" "argocd" {
   ]
 }
 
+resource "random_password" "argocd_readonly" {
+  count            = var.create_eks && var.enable_argocd ? 1 : 0
+  length           = 8
+  min_numeric      = 4
+  min_upper        = 4
+  min_lower        = 4
+  min_special      = 4
+}
+
+resource "aws_secretsmanager_secret" "argocd_readonly_password" {
+  count       = var.create_eks && var.enable_argocd ? 1 : 0
+  name        = "argocd-readonly-password"
+  description = "Password for ArgoCD readonly hyperspace user"
+}
+
+resource "aws_secretsmanager_secret_version" "argocd_readonly_password" {
+  count         = var.create_eks && var.enable_argocd ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.argocd_readonly_password[0].id
+  secret_string = random_password.argocd_readonly[0].result
+}
+
 # Execute ArgoCD CLI setup and password update
 resource "null_resource" "argocd_setup" {
   count = var.create_eks && var.enable_argocd ? 1 : 0
@@ -97,14 +118,9 @@ resource "null_resource" "argocd_setup" {
       argocd account update-password \
         --account hyperspace \
         --current-password $ARGOCD_PASSWORD \
-        --new-password hyperspace
+        --new-password ${random_password.argocd_readonly.result}
       echo "Hyperspace User password updated successfully!"
     EOT
   }
   depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb[0]]
-  triggers = {
-    helm_release_id = helm_release.argocd[0].id
-    nlb_id = data.aws_lb.argocd_privatelink_nlb[0].id
-    timestamp = timestamp()
-  }
 }

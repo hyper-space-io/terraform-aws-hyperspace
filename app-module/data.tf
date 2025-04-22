@@ -68,3 +68,8 @@ data "aws_lb" "argocd_privatelink_nlb" {
 
   depends_on = [time_sleep.wait_for_argocd_privatelink_nlb]
 }
+
+#######################
+###### ArgoCD #########
+#######################
+

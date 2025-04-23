@@ -14,6 +14,7 @@ locals {
   prometheus_endpoint_additional_cidr_blocks = jsondecode(var.prometheus_endpoint_additional_cidr_blocks)
   prometheus_remote_write_endpoint           = "https://prometheus.internal.devops-dev.hyper-space.xyz/api/v1/write"
   internal_ingress_class_name                = "nginx-internal"
+  vcs_configuration                          = jsondecode(var.vcs_configuration)
 
   alb_values = <<EOT
   vpcId: ${local.vpc_module.vpc_id}
@@ -154,25 +155,25 @@ locals {
   ##################
   vcs_providers_config = {
     github = {
-      enabled     = try(var.vcs_configuration.github.enabled, false)
-      secret_name = try(var.vcs_configuration.github.secret_name, "argocd/githubapp")
+      enabled     = try(local.vcs_configuration.github.enabled, false)
+      secret_name = try(local.vcs_configuration.github.secret_name, "argocd/githubapp")
       connector = {
         type = "github"
         id   = "github"
         name = "GitHub"
         config = {
-          orgs         = [var.vcs_configuration.organization]
+          orgs         = [local.vcs_configuration.organization]
           redirectURI  = "https://argocd.${local.internal_domain_name}/api/dex/callback"
           useLoginAsID = true
         }
       }
       credentials = {
-        url = "https://github.com/${var.vcs_configuration.organization}/"
+        url = "https://github.com/${local.vcs_configuration.organization}/"
       }
     }
     gitlab = {
-      enabled     = try(var.vcs_configuration.gitlab.enabled, false)
-      secret_name = try(var.vcs_configuration.gitlab.ssh_key.secret_name, "argocd/gitlab-ssh-key")
+      enabled     = try(local.vcs_configuration.gitlab.enabled, false)
+      secret_name = try(local.vcs_configuration.gitlab.ssh_key.secret_name, "argocd/gitlab-ssh-key")
       connector = {
         type = "gitlab"
         id   = "gitlab-ssh"
@@ -183,8 +184,8 @@ locals {
       }
     }
     gitlab_token = {
-      enabled     = try(var.vcs_configuration.gitlab.enabled, false) && try(var.vcs_configuration.gitlab.access_token.enabled, false)
-      secret_name = try(var.vcs_configuration.gitlab.access_token.secret_name, "argocd/gitlab-access-token")
+      enabled     = try(local.vcs_configuration.gitlab.enabled, false) && try(local.vcs_configuration.gitlab.access_token.enabled, false)
+      secret_name = try(local.vcs_configuration.gitlab.access_token.secret_name, "argocd/gitlab-access-token")
       connector = {
         type = "gitlab"
         id   = "gitlab-token"

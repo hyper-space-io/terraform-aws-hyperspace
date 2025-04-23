@@ -127,30 +127,8 @@ variable "argocd_rbac_policy_rules" {
 
 variable "vcs_configuration" {
   description = "VCS configuration for ArgoCD"
-  type = object({
-    organization = string
-    branch       = string
-    github = optional(object({
-      enabled     = optional(bool)
-      secret_name = optional(string)
-    }))
-    gitlab = optional(object({
-      enabled = optional(bool)
-      ssh_key = optional(object({
-        secret_name = optional(string)
-      }))
-      access_token = optional(object({
-        enabled     = optional(bool)
-        secret_name = optional(string)
-      }))
-    }))
-  })
-  default = {
-    organization = ""
-    branch       = ""
-    github       = null
-    gitlab       = null
-  }
+  type        = string
+  default     = "{}"
 }
 
 ###############################

@@ -186,11 +186,9 @@ locals {
     }
   } : null
 
-  # Final connectors list (only includes enabled providers)
-  dex_connectors = compact([
-    local.github_connector,
-    # local.gitlab_connector,  # Will be implemented later
-  ])
+  # Connector configuration
+  # ADD SUPPORT FOR GITLAB CONNECTOR LATER 
+  dex_connectors = local.github_connector
 
   # ArgoCD secret configuration
   argocd_secret_config = local.github_config.enabled ? {

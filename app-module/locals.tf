@@ -152,64 +152,80 @@ locals {
   ##################
   ##### VCS ########
   ##################
-  vcs_providers = {
+  vcs_providers_config = {
     github = {
       enabled     = try(var.vcs_configuration.github.enabled, false)
       secret_name = try(var.vcs_configuration.github.secret_name, "argocd/githubapp")
-      auth_type   = "app"
       connector = {
         type = "github"
         id   = "github"
         name = "GitHub"
         config = {
-          clientID     = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets["github"].secret_string).client_id, null)
-          clientSecret = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets["github"].secret_string).client_secret, null)
           orgs         = [var.vcs_configuration.organization]
           redirectURI  = "https://argocd.${local.internal_domain_name}/api/dex/callback"
           useLoginAsID = true
         }
       }
       credentials = {
-        url                     = "https://github.com/${var.vcs_configuration.organization}/"
-        githubAppID             = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets["github"].secret_string).github_app_id, null)
-        githubAppInstallationID = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets["github"].secret_string).github_installation_id, null)
-        githubAppPrivateKey     = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets["github"].secret_string).private_key, null)
+        url = "https://github.com/${var.vcs_configuration.organization}/"
       }
     }
     gitlab = {
       enabled     = try(var.vcs_configuration.gitlab.enabled, false)
       secret_name = try(var.vcs_configuration.gitlab.ssh_key.secret_name, "argocd/gitlab-ssh-key")
-      auth_type   = "ssh_key"
       connector = {
         type = "gitlab"
         id   = "gitlab-ssh"
         name = "GitLab SSH"
         config = {
           baseURL = "https://gitlab.com"
-          sshKey  = try(data.aws_secretsmanager_secret_version.vcs_secrets["gitlab"].secret_string, null)
         }
       }
     }
     gitlab_token = {
       enabled     = try(var.vcs_configuration.gitlab.enabled, false) && try(var.vcs_configuration.gitlab.access_token.enabled, false)
       secret_name = try(var.vcs_configuration.gitlab.access_token.secret_name, "argocd/gitlab-access-token")
-      auth_type   = "access_token"
       connector = {
         type = "gitlab"
         id   = "gitlab-token"
         name = "GitLab Token"
         config = {
-          baseURL      = "https://gitlab.com"
-          clientID     = "argocd"
-          clientSecret = try(data.aws_secretsmanager_secret_version.vcs_secrets["gitlab_token"].secret_string, null)
+          baseURL  = "https://gitlab.com"
+          clientID = "argocd"
         }
       }
     }
   }
 
+  # After secrets are available, merge them with the config
+  vcs_providers = {
+    for k, v in local.vcs_providers_config : k => merge(v, {
+      connector = merge(v.connector, {
+        config = merge(v.connector.config, {
+          clientID     = k == "github" && v.enabled ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).client_id, null) : null
+          clientSecret = v.enabled ? (
+            k == "github" ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).client_secret, null) :
+            k == "gitlab_token" ? try(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string, null) :
+            null
+          ) : null
+          sshKey       = k == "gitlab" && v.enabled ? try(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string, null) : null
+        })
+      })
+      credentials = k == "github" && v.enabled ? merge(v.credentials, {
+        githubAppID             = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).github_app_id, null)
+        githubAppInstallationID = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).github_installation_id, null)
+        githubAppPrivateKey     = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).private_key, null)
+      }) : v.credentials
+    })
+  }
+
   dex_connectors = [
     for k, v in local.vcs_providers : v.connector
-    if v.enabled
+    if v.enabled && (
+      (k == "github" && v.connector.config.clientID != null && v.connector.config.clientSecret != null) ||
+      (k == "gitlab" && v.connector.config.sshKey != null) ||
+      (k == "gitlab_token" && v.connector.config.clientSecret != null)
+    )
   ]
 
   argocd_secret_config = local.vcs_providers.github.enabled ? {

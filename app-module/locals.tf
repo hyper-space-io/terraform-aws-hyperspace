@@ -202,19 +202,19 @@ locals {
     for k, v in local.vcs_providers_config : k => merge(v, {
       connector = merge(v.connector, {
         config = merge(v.connector.config, {
-          clientID     = k == "github" && v.enabled ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).client_id, null) : null
+          clientID     = k == "github" && v.enabled ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string).client_id, null) : null
           clientSecret = v.enabled ? (
-            k == "github" ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).client_secret, null) :
-            k == "gitlab_token" ? try(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string, null) :
+            k == "github" ? try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string).client_secret, null) :
+            k == "gitlab_token" ? try(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string, null) :
             null
           ) : null
-          sshKey       = k == "gitlab" && v.enabled ? try(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string, null) : null
+          sshKey       = k == "gitlab" && v.enabled ? try(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string, null) : null
         })
       })
       credentials = k == "github" && v.enabled ? merge(v.credentials, {
-        githubAppID             = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).github_app_id, null)
-        githubAppInstallationID = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).github_installation_id, null)
-        githubAppPrivateKey     = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[k].secret_string).private_key, null)
+        githubAppID             = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string).github_app_id, null)
+        githubAppInstallationID = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string).github_installation_id, null)
+        githubAppPrivateKey     = try(jsondecode(data.aws_secretsmanager_secret_version.vcs_secrets[0][k].secret_string).private_key, null)
       }) : v.credentials
     })
   }

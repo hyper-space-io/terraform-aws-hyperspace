@@ -126,9 +126,10 @@ variable "argocd_rbac_policy_rules" {
 }
 
 variable "vcs_configuration" {
+  description = "VCS configuration for ArgoCD"
   type = object({
     organization = string
-    branch      = string
+    branch       = string
     github = optional(object({
       enabled     = optional(bool)
       secret_name = optional(string)
@@ -136,35 +137,20 @@ variable "vcs_configuration" {
     gitlab = optional(object({
       enabled = optional(bool)
       ssh_key = optional(object({
-        enabled     = bool
         secret_name = optional(string)
       }))
       access_token = optional(object({
-        enabled     = bool
+        enabled     = optional(bool)
         secret_name = optional(string)
       }))
     }))
   })
   default = {
     organization = ""
-    branch      = "master"
-    github = {
-      enabled     = false
-      secret_name = "argocd/githubapp"
-    }
-    gitlab = {
-      enabled = false
-      ssh_key = {
-        enabled     = false
-        secret_name = "argocd/gitlab-ssh-key"
-      }
-      access_token = {
-        enabled     = false
-        secret_name = "argocd/gitlab-access-token"
-      }
-    }
+    branch       = ""
+    github       = null
+    gitlab       = null
   }
-  description = "Configuration for VCS authentication in ArgoCD"
 }
 
 ###############################

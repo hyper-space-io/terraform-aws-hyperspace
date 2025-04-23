@@ -173,7 +173,7 @@ locals {
   }
 
   # GitHub connector (only if enabled)
-  github_connector = local.github_config.enabled ? {
+  github_connector = try(local.vcs_configuration.github.enabled, false) ? {
     type = "github"
     id   = "github"
     name = "GitHub"
@@ -191,14 +191,14 @@ locals {
   dex_connectors = local.github_connector
 
   # ArgoCD secret configuration
-  argocd_secret_config = local.github_config.enabled ? {
+  argocd_secret_config = try(local.vcs_configuration.github.enabled, false) ? {
     extra = {
       "dex.github.clientSecret" = try(jsondecode(data.aws_secretsmanager_secret_version.github_secret[0].secret_string).client_secret, null)
     }
   } : {}
 
   # ArgoCD credential templates
-  argocd_credential_templates = local.github_config.enabled ? {
+  argocd_credential_templates = try(local.vcs_configuration.github.enabled, false) ? {
     "github-creds" = {
       url = "https://github.com/${local.vcs_configuration.organization}/"
       githubAppID             = try(jsondecode(data.aws_secretsmanager_secret_version.github_secret[0].secret_string).github_app_id, null)

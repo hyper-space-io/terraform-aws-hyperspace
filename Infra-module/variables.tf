@@ -13,6 +13,11 @@ variable "hyperspace_account_id" {
   description = "The account ID of the hyperspace account"
 }
 
+variable "tfe_organization" {
+  description = "Terraform Cloud organization name"
+  type        = string
+}
+
 variable "environment" {
   type        = string
   default     = "development"

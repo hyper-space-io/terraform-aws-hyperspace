@@ -7,6 +7,7 @@ locals {
     tags                                       = jsonencode(local.tags)
     domain_name                                = var.domain_name
     infra_workspace_name                       = terraform.workspace
+    tfe_organization                           = var.tfe_organization
     organization                               = data.tfe_organizations.all.names[0]
     vpc_module                                 = jsonencode(module.vpc)
     availability_zones                         = jsonencode(local.availability_zones)

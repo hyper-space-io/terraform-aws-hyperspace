@@ -148,4 +148,62 @@ locals {
       "54.76.184.103/32"
     ]
   }
+
+  ##################
+  ##### ArgoCD #####
+  ##################
+  github_app_config   = local.vcs_config.github.enabled ? jsondecode(data.aws_secretsmanager_secret_version.github_app[0].secret_string) : null
+  gitlab_ssh_key      = local.vcs_config.gitlab.enabled && local.vcs_config.gitlab.ssh_key.enabled ? data.aws_secretsmanager_secret_version.gitlab_ssh_key[0].secret_string : null
+  gitlab_access_token = local.vcs_config.gitlab.enabled && local.vcs_config.gitlab.access_token.enabled ? data.aws_secretsmanager_secret_version.gitlab_access_token[0].secret_string : null
+
+  dex_connectors = concat(
+    # GitHub Connector
+    local.vcs_config.github.enabled ? [{
+      type = "github"
+      id   = "github"
+      name = "GitHub"
+      config = {
+        clientID     = local.github_app_config.client_id
+        clientSecret = local.github_app_config.client_secret
+        orgs         = [var.vcs_configuration.organization]
+        redirectURI  = "https://argocd.${local.internal_domain_name}/api/dex/callback"
+      }
+    }] : [],
+    # GitLab SSH Connector
+    local.vcs_config.gitlab.enabled && local.vcs_config.gitlab.ssh_key.enabled ? [{
+      type = "gitlab"
+      id   = "gitlab-ssh"
+      name = "GitLab SSH"
+      config = {
+        baseURL = "https://gitlab.com"
+        sshKey  = local.gitlab_ssh_key
+      }
+    }] : [],
+    # GitLab Token Connector
+    local.vcs_config.gitlab.enabled && local.vcs_config.gitlab.access_token.enabled ? [{
+      type = "gitlab"
+      id   = "gitlab-token"
+      name = "GitLab Token"
+      config = {
+        baseURL      = "https://gitlab.com"
+        clientID     = "argocd"
+        clientSecret = local.gitlab_access_token
+      }
+    }] : []
+  )
+
+  argocd_secret_config = local.vcs_config.github.enabled ? {
+    extra = {
+      "dex.github.clientSecret" = local.github_app_config.client_secret
+    }
+  } : {}
+
+  argocd_credential_templates = local.vcs_config.github.enabled ? {
+    "github-creds" = {
+      url                     = "https://github.com/${local.vcs_config.github.organization}/"
+      githubAppID             = local.github_app_config.github_app_id
+      githubAppInstallationID = local.github_app_config.github_installation_id
+      githubAppPrivateKey     = local.github_app_config.private_key
+    }
+  } : {}
 }

@@ -20,7 +20,7 @@ locals {
     data_node_ami_id                           = data.aws_ami.fpga.id
     enable_ha_argocd                           = var.enable_ha_argocd
     create_public_zone                         = var.create_public_zone
-    dex_connectors                             = jsonencode(var.dex_connectors)
+    vcs_configuration                          = jsonencode(var.vcs_configuration)
     argocd_endpoint_allowed_principals         = jsonencode(var.argocd_endpoint_allowed_principals)
     argocd_endpoint_additional_aws_regions     = jsonencode(var.argocd_endpoint_additional_aws_regions)
     prometheus_endpoint_service_name           = var.prometheus_endpoint_service_name
@@ -43,8 +43,8 @@ resource "tfe_workspace" "app" {
   queue_all_runs        = false
   working_directory     = "app-module"
   vcs_repo {
-    identifier                 = "${var.github_organization}/Hyperspace-terraform-module"
-    branch                     = var.github_branch
+    identifier                 = "${var.vcs_configuration.organization}/Hyperspace-terraform-module"
+    branch                     = var.vcs_configuration.branch
     oauth_token_id             = local.vcs_auth.oauth_token_id
     github_app_installation_id = local.vcs_auth.github_app_installation_id
   }

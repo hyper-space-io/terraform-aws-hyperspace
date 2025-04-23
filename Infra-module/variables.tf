@@ -167,12 +167,6 @@ variable "enable_ha_argocd" {
   default     = false
 }
 
-variable "dex_connectors" {
-  type        = list(any)
-  default     = []
-  description = "List of Dex connector configurations"
-}
-
 variable "domain_name" {
   description = "The main domain name to use to create sub-domains"
   type        = string
@@ -185,15 +179,46 @@ variable "existing_agent_pool_name" {
   default     = ""
 }
 
-variable "github_organization" {
-  description = "The organization name for the github repository to fetch the app module from"
-  type        = string
-}
-
-variable "github_branch" {
-  description = "The branch name for the github repository"
-  type        = string
-  default     = "master"
+variable "vcs_configuration" {
+  type = object({
+    organization = string
+    branch       = string
+    github = optional(object({
+      enabled     = bool
+      secret_name = string
+    }))
+    gitlab = optional(object({
+      enabled = bool
+      ssh_key = optional(object({
+        enabled     = bool
+        secret_name = string
+      }))
+      access_token = optional(object({
+        enabled     = bool
+        secret_name = string
+      }))
+    }))
+  })
+  default = {
+    organization = ""
+    branch       = "master"
+    github = {
+      enabled     = false
+      secret_name = "argocd/githubapp"
+    }
+    gitlab = {
+      enabled = false
+      ssh_key = {
+        enabled     = false
+        secret_name = "argocd/gitlab-ssh-key"
+      }
+      access_token = {
+        enabled     = false
+        secret_name = "argocd/gitlab-access-token"
+      }
+    }
+  }
+  description = "Configuration for VCS authentication in ArgoCD"
 }
 
 ################################

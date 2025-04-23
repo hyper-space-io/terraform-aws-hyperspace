@@ -29,16 +29,11 @@ resource "helm_release" "argocd" {
           "timeout.reconciliation" = "5s"
           "accounts.hyperspace"    = "login"
           "dex.config" = yamlencode({
-            connectors = [
-              for connector in jsondecode(var.dex_connectors) : {
-                type   = connector.type
-                id     = connector.id
-                name   = connector.name
-                config = connector.config
-              }
-            ]
+            connectors = local.dex_connectors
           })
         }
+        secret              = local.argocd_secret_config
+        credentialTemplates = local.argocd_credential_templates
       }
       server = {
         service = {
@@ -78,8 +73,8 @@ resource "helm_release" "argocd" {
 }
 
 resource "random_password" "argocd_readonly" {
-  count            = var.create_eks && var.enable_argocd ? 1 : 0
-  length           = 16
+  count  = var.create_eks && var.enable_argocd ? 1 : 0
+  length = 16
 }
 
 resource "aws_secretsmanager_secret" "argocd_readonly_password" {
@@ -120,7 +115,7 @@ resource "null_resource" "argocd_setup" {
   }
   depends_on = [helm_release.argocd, data.aws_lb.argocd_privatelink_nlb[0]]
   triggers = {
-    helm_release_id = helm_release.argocd[count.index].id
+    helm_release_id   = helm_release.argocd[count.index].id
     readonly_password = random_password.argocd_readonly[count.index].result
   }
 }

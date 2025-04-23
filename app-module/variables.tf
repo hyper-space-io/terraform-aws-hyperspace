@@ -8,18 +8,18 @@ variable "project" {
   description = "Name of the project - this is used to generate names for resources"
 }
 
-variable "hyperspace_account_id" {
-  description = "The account ID of the hyperspace account"
-  type        = string
-}
-
 variable "environment" {
   type        = string
   default     = "development"
   description = "The environment we are creating - used to generate names for resource"
 }
 
-variable "organization" {
+variable "hyperspace_account_id" {
+  description = "The account ID of the hyperspace account"
+  type        = string
+}
+
+variable "tfe_organization" {
   description = "Terraform Cloud organization name"
   type        = string
 }
@@ -113,12 +113,6 @@ variable "enable_ha_argocd" {
   default     = true
 }
 
-variable "dex_connectors" {
-  type        = string
-  default     = ""
-  description = "List of Dex connector configurations"
-}
-
 variable "argocd_rbac_policy_default" {
   description = "default role for argocd"
   type        = string
@@ -129,6 +123,48 @@ variable "argocd_rbac_policy_rules" {
   description = "Rules for argocd rbac"
   type        = list(string)
   default     = []
+}
+
+variable "vcs_configuration" {
+  type = object({
+    organization = string
+    branch       = string
+    github = optional(object({
+      enabled     = bool
+      secret_name = string
+    }))
+    gitlab = optional(object({
+      enabled = bool
+      ssh_key = optional(object({
+        enabled     = bool
+        secret_name = string
+      }))
+      access_token = optional(object({
+        enabled     = bool
+        secret_name = string
+      }))
+    }))
+  })
+  default = {
+    organization = ""
+    branch       = "master"
+    github = {
+      enabled     = false
+      secret_name = "argocd/githubapp"
+    }
+    gitlab = {
+      enabled = false
+      ssh_key = {
+        enabled     = false
+        secret_name = "argocd/gitlab-ssh-key"
+      }
+      access_token = {
+        enabled     = false
+        secret_name = "argocd/gitlab-access-token"
+      }
+    }
+  }
+  description = "Configuration for VCS authentication in ArgoCD"
 }
 
 ###############################

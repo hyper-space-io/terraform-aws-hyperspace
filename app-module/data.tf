@@ -6,7 +6,7 @@ data "terraform_remote_state" "infra" {
   backend = "remote"
 
   config = {
-    organization = var.organization
+    organization = var.tfe_organization
     workspaces = {
       name = var.infra_workspace_name
     }
@@ -73,3 +73,47 @@ data "aws_lb" "argocd_privatelink_nlb" {
 ###### ArgoCD #########
 #######################
 
+data "aws_secretsmanager_secret_version" "github_app" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.github.enabled ? 1 : 0
+  secret_id = var.vcs_configuration.github.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "gitlab_ssh_key" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.ssh_key.enabled ? 1 : 0
+  secret_id = var.vcs_configuration.gitlab.ssh_key.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "gitlab_access_token" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.access_token.enabled ? 1 : 0
+  secret_id = var.vcs_configuration.gitlab.access_token.secret_name
+}
+
+data "aws_secretsmanager_secret" "github_app" {
+  count = var.create_eks && var.enable_argocd && var.vcs_configuration.github.enabled ? 1 : 0
+  name  = var.vcs_configuration.github.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "github_app" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.github.enabled ? 1 : 0
+  secret_id = data.aws_secretsmanager_secret.github_app[0].id
+}
+
+data "aws_secretsmanager_secret" "gitlab_ssh_key" {
+  count = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.ssh_key.enabled ? 1 : 0
+  name  = var.vcs_configuration.gitlab.ssh_key.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "gitlab_ssh_key" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.ssh_key.enabled ? 1 : 0
+  secret_id = data.aws_secretsmanager_secret.gitlab_ssh_key[0].id
+}
+
+data "aws_secretsmanager_secret" "gitlab_access_token" {
+  count = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.access_token.enabled ? 1 : 0
+  name  = var.vcs_configuration.gitlab.access_token.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "gitlab_access_token" {
+  count     = var.create_eks && var.enable_argocd && var.vcs_configuration.gitlab.enabled && var.vcs_configuration.gitlab.access_token.enabled ? 1 : 0
+  secret_id = data.aws_secretsmanager_secret.gitlab_access_token[0].id
+}

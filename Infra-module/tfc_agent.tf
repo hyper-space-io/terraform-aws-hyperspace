@@ -125,6 +125,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
         Effect = "Allow"
         Action = [
           "eks:*Cluster*",
+          "eks:TagResource",
           "eks:*AccessEntry*",
           "eks:*AccessPolic*",
           "eks:*Nodegroup*",
@@ -226,7 +227,7 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "autoscaling:TerminateInstanceInAutoScalingGroup",
           "autoscaling:DescribeScalingActivities"
         ]
-        Resource = "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*"
+        Resource = "*"
       }
     ]
   })
@@ -238,7 +239,8 @@ resource "aws_iam_role_policy_attachment" "tfc_agent_policies" {
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
     "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
     "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM",
-    "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+    "arn:aws:iam::aws:policy/AmazonSSMFullAccess",
+    "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   ])
   policy_arn = each.value
   role       = aws_iam_role.tfc_agent_role.name

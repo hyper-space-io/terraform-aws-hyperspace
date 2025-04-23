@@ -36,8 +36,8 @@ variable "aws_region" {
 }
 
 variable "hyperspace_aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
   description = "The region of the hyperspace account"
 }
 
@@ -135,8 +135,8 @@ variable "worker_instance_type" {
   type    = list(string)
   default = ["m5n.xlarge"]
   validation {
-    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge", "m5n.large"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
+    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge", "m5n.large", "m5d.xlarge", "m5d.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large', 'm5d.xlarge', 'm5d.large']."
   }
   description = "The list of allowed instance types for worker nodes."
 }
@@ -185,6 +185,17 @@ variable "existing_agent_pool_name" {
   default     = ""
 }
 
+variable "github_organization" {
+  description = "The organization name for the github repository to fetch the app module from"
+  type        = string
+}
+
+variable "github_branch" {
+  description = "The branch name for the github repository"
+  type        = string
+  default     = "master"
+}
+
 ################################
 ###### ArgoCD Privatelink ######
 ################################
@@ -207,7 +218,6 @@ variable "argocd_endpoint_allowed_principals" {
 
 variable "prometheus_endpoint_service_name" {
   type        = string
-  default     = ""
   description = "The service name the vpc endpoint will connect to"
 }
 

@@ -129,17 +129,23 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "eks:*AccessEntry*",
           "eks:*AccessPolic*",
           "eks:*Nodegroup*",
+          "eks:*Addon*",
+          "eks:DescribeAddon",
+          "eks:DescribeAddonVersions",
+          "eks:CreateAddon",
+          "eks:DeleteAddon",
+          "eks:UpdateAddon"
         ]
         Resource = [
           "arn:aws:eks:*:*:cluster/*",
           "arn:aws:eks:*:*:access-entry/*",
-          "arn:aws:eks:*:*:nodegroup/*"
+          "arn:aws:eks:*:*:nodegroup/*",
+          "arn:aws:eks:*:*:addon/*"
         ]
       },
       {
         Effect = "Allow"
         Action = [
-          "eks:*Addon*",
           "elasticloadbalancing:Describe*"
         ]
         Resource = "*"

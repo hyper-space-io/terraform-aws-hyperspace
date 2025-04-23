@@ -75,5 +75,5 @@ data "aws_lb" "argocd_privatelink_nlb" {
 
 data "aws_secretsmanager_secret_version" "github_secret" {
   count     = var.create_eks && var.enable_argocd && try(local.vcs_configuration.github.enabled, false) ? 1 : 0
-  secret_id = try(local.vcs_configuration.github.secret_name, "argocd/githubapp")
+  secret_id = local.github_config.secret_name
 }

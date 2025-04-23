@@ -209,6 +209,7 @@ variable "vcs_configuration" {
     branch      = "master"
     github = {
       enabled     = false
+      secret_name = "argocd/githubapp"
     }
     gitlab = {
       enabled = false

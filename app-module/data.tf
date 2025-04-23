@@ -73,12 +73,7 @@ data "aws_lb" "argocd_privatelink_nlb" {
 ###### ArgoCD #########
 #######################
 
-data "aws_secretsmanager_secret" "github_secret" {
-  count = var.create_eks && var.enable_argocd && local.github_config.enabled ? 1 : 0
-  name  = local.github_config.secret_name
-}
-
 data "aws_secretsmanager_secret_version" "github_secret" {
   count     = var.create_eks && var.enable_argocd && local.github_config.enabled ? 1 : 0
-  secret_id = data.aws_secretsmanager_secret.github_secret[0].id
+  secret_id = local.github_config.secret_name
 }

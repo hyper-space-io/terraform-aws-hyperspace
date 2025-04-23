@@ -178,11 +178,11 @@ locals {
     id   = "github"
     name = "GitHub"
     config = {
-      orgs         = [local.vcs_configuration.organization]
-      redirectURI  = "https://argocd.${local.internal_domain_name}/api/dex/callback"
-      useLoginAsID = true
       clientID     = try(jsondecode(data.aws_secretsmanager_secret_version.github_secret[0].secret_string).client_id, null)
       clientSecret = try(jsondecode(data.aws_secretsmanager_secret_version.github_secret[0].secret_string).client_secret, null)
+      orgs = [{
+        name = local.vcs_configuration.organization
+      }]
     }
   } : null
 

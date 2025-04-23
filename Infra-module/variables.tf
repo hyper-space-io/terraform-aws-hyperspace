@@ -209,17 +209,14 @@ variable "vcs_configuration" {
     branch      = "master"
     github = {
       enabled     = false
-      secret_name = "argocd/githubapp"
     }
     gitlab = {
       enabled = false
       ssh_key = {
         enabled     = false
-        secret_name = "argocd/gitlab-ssh-key"
       }
       access_token = {
         enabled     = false
-        secret_name = "argocd/gitlab-access-token"
       }
     }
   }

@@ -76,7 +76,7 @@ data "aws_lb" "argocd_privatelink_nlb" {
 data "aws_secretsmanager_secret" "vcs_secrets" {
   for_each = {
     for k, v in local.vcs_providers_config : k => v
-    if var.create_eks && var.enable_argocd && v.enabled
+    if var.create_eks && var.enable_argocd && v.enabled && v.secret_name != null && v.secret_name != ""
   }
   name = each.value.secret_name
 }
@@ -84,7 +84,7 @@ data "aws_secretsmanager_secret" "vcs_secrets" {
 data "aws_secretsmanager_secret_version" "vcs_secrets" {
   for_each = {
     for k, v in local.vcs_providers_config : k => v
-    if var.create_eks && var.enable_argocd && v.enabled
+    if var.create_eks && var.enable_argocd && v.enabled && v.secret_name != null && v.secret_name != ""
   }
   secret_id = data.aws_secretsmanager_secret.vcs_secrets[each.key].id
 }

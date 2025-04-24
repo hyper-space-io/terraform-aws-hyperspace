@@ -131,7 +131,6 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "eks:*Nodegroup*",
           "eks:*Addon*",
           "eks:DescribeAddon",
-          "eks:DescribeAddonVersions",
           "eks:CreateAddon",
           "eks:DeleteAddon",
           "eks:UpdateAddon",
@@ -139,8 +138,19 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
           "eks:DescribeAddonConfiguration"
         ]
         Resource = [
-          "*"
+          "arn:aws:eks:*:*:cluster/*",
+          "arn:aws:eks:*:*:access-entry/*",
+          "arn:aws:eks:*:*:nodegroup/*",
+          "arn:aws:eks:*:*:addon/*",
+          "arn:aws:eks:*:*:addon-version/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeAddonVersions"
+        ]
+        Resource = "*"
       },
       {
         Effect = "Allow"

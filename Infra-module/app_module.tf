@@ -33,6 +33,10 @@ locals {
     oauth_token_id             = try(data.tfe_workspace.current.vcs_repo[0].oauth_token_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].oauth_token_id : null
     github_app_installation_id = try(data.tfe_workspace.current.vcs_repo[0].github_app_installation_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].github_app_installation_id : null
   }
+  hyperspace_vcs_auth = {
+    # oauth_token_id             = try(data.tfe_workspace.current.vcs_repo[0].oauth_token_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].oauth_token_id : null
+    github_app_installation_id = jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app.secret_string)["github_app_installation_id"]
+  }
 }
 
 resource "tfe_workspace" "app" {
@@ -44,10 +48,10 @@ resource "tfe_workspace" "app" {
   queue_all_runs        = false
   working_directory     = "app-module"
   vcs_repo {
-    identifier                 = "${var.vcs_configuration.organization}/Hyperspace-terraform-module"
+    identifier                 = "hyper-space-io/Hyperspace-terraform-module"
     branch                     = var.vcs_configuration.branch
     oauth_token_id             = local.vcs_auth.oauth_token_id
-    github_app_installation_id = local.vcs_auth.github_app_installation_id
+    github_app_installation_id = local.hyperspace_vcs_auth.github_app_installation_id
   }
 }
 

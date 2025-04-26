@@ -8,18 +8,18 @@ variable "project" {
   description = "Name of the project - this is used to generate names for resources"
 }
 
-variable "hyperspace_account_id" {
-  description = "The account ID of the hyperspace account"
-  type        = string
-}
-
 variable "environment" {
   type        = string
   default     = "development"
   description = "The environment we are creating - used to generate names for resource"
 }
 
-variable "organization" {
+variable "hyperspace_account_id" {
+  description = "The account ID of the hyperspace account"
+  type        = string
+}
+
+variable "tfe_organization" {
   description = "Terraform Cloud organization name"
   type        = string
 }
@@ -33,8 +33,8 @@ variable "aws_region" {
   type    = string
   default = "us-east-1"
   validation {
-    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1"], var.aws_region)
-    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1]."
+    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1", "eu-west-2"], var.aws_region)
+    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1, eu-west-2]."
   }
   description = "This is used to define where resources are created and used"
 }
@@ -89,10 +89,10 @@ variable "worker_nodes_max" {
 
 variable "worker_instance_type" {
   type    = string
-  default = "[m5n.xlarge]"
+  default = "m5n.xlarge"
   validation {
-    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
+    condition     = alltrue([for instance in jsondecode(var.worker_instance_type) : contains(["m5n.xlarge", "m5n.large", "m5d.xlarge", "m5d.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large', 'm5d.xlarge', 'm5d.large']."
   }
   description = "The list of allowed instance types for worker nodes."
 }
@@ -113,12 +113,6 @@ variable "enable_ha_argocd" {
   default     = true
 }
 
-variable "dex_connectors" {
-  type        = string
-  default     = ""
-  description = "List of Dex connector configurations"
-}
-
 variable "argocd_rbac_policy_default" {
   description = "default role for argocd"
   type        = string
@@ -129,6 +123,12 @@ variable "argocd_rbac_policy_rules" {
   description = "Rules for argocd rbac"
   type        = list(string)
   default     = []
+}
+
+variable "vcs_configuration" {
+  description = "VCS configuration for ArgoCD"
+  type        = string
+  default     = "{}"
 }
 
 ###############################
@@ -185,7 +185,6 @@ variable "local_iam_policies" {
 
 variable "argocd_endpoint_additional_aws_regions" {
   type        = string
-  default     = "eu-central-1"
   description = "The additional aws regions to enable for the argocd vpc endpoint"
 }
 

@@ -13,6 +13,11 @@ variable "hyperspace_account_id" {
   description = "The account ID of the hyperspace account"
 }
 
+variable "tfe_organization" {
+  description = "Terraform Cloud organization name"
+  type        = string
+}
+
 variable "environment" {
   type        = string
   default     = "development"
@@ -29,10 +34,16 @@ variable "aws_region" {
   type    = string
   default = "us-east-1"
   validation {
-    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1"], var.aws_region)
-    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1]."
+    condition     = contains(["us-east-1", "us-west-1", "eu-west-1", "eu-central-1", "eu-west-2"], var.aws_region)
+    error_message = "Hyperspace currently does not support this region, valid values: [us-east-1, us-west-1, eu-west-1, eu-central-1, eu-west-2]."
   }
   description = "This is used to define where resources are created and used"
+}
+
+variable "hyperspace_aws_region" {
+  type        = string
+  default     = "us-east-1"
+  description = "The region of the hyperspace account"
 }
 
 ########################
@@ -129,8 +140,8 @@ variable "worker_instance_type" {
   type    = list(string)
   default = ["m5n.xlarge"]
   validation {
-    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge", "m5n.large"], instance)])
-    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large']."
+    condition     = alltrue([for instance in var.worker_instance_type : contains(["m5n.xlarge", "m5n.large", "m5d.xlarge", "m5d.large"], instance)])
+    error_message = "Invalid input for 'worker_instance_type'. Only the following instance type(s) are allowed: ['m5n.xlarge', 'm5n.large', 'm5d.xlarge', 'm5d.large']."
   }
   description = "The list of allowed instance types for worker nodes."
 }
@@ -161,12 +172,6 @@ variable "enable_ha_argocd" {
   default     = false
 }
 
-variable "dex_connectors" {
-  type        = list(any)
-  default     = []
-  description = "List of Dex connector configurations"
-}
-
 variable "domain_name" {
   description = "The main domain name to use to create sub-domains"
   type        = string
@@ -177,6 +182,46 @@ variable "existing_agent_pool_name" {
   description = "The name of the existing agent pool to use"
   type        = string
   default     = ""
+}
+
+variable "vcs_configuration" {
+  type = object({
+    organization = string
+    branch      = string
+    github = optional(object({
+      enabled     = optional(bool)
+      secret_name = optional(string)
+    }))
+    gitlab = optional(object({
+      enabled = optional(bool)
+      ssh_key = optional(object({
+        enabled     = bool
+        secret_name = optional(string)
+      }))
+      access_token = optional(object({
+        enabled     = bool
+        secret_name = optional(string)
+      }))
+    }))
+  })
+  default = {
+    organization = ""
+    branch      = "master"
+    github = {
+      enabled     = false
+      secret_name = "argocd/githubapp"
+    }
+    gitlab = {
+      enabled = false
+      ssh_key = {
+        enabled     = false
+      }
+      access_token = {
+        enabled     = false
+      }
+    }
+  }
+  description = "Configuration for VCS authentication in ArgoCD"
 }
 
 ################################
@@ -201,7 +246,6 @@ variable "argocd_endpoint_allowed_principals" {
 
 variable "prometheus_endpoint_service_name" {
   type        = string
-  default     = ""
   description = "The service name the vpc endpoint will connect to"
 }
 

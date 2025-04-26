@@ -1,5 +1,7 @@
 locals {
-  prometheus_release_name = "kube-prometheus-stack"
+  prometheus_release_name      = "kube-prometheus-stack"
+  prometheus_crds_release_name = "prometheus-operator-crds"
+  monitoring_namespace         = "monitoring"
 }
 
 resource "helm_release" "kube_prometheus_stack" {
@@ -9,7 +11,7 @@ resource "helm_release" "kube_prometheus_stack" {
   create_namespace = true
   cleanup_on_fail  = true
   version          = "68.3.0"
-  namespace        = "monitoring"
+  namespace        = local.monitoring_namespace
   repository       = "https://prometheus-community.github.io/helm-charts"
   values = [<<EOF
 global:
@@ -17,23 +19,7 @@ global:
     - name: "regcred-secret"
 
 grafana:
-  ingress:
-    enabled: true
-    ingressClassName: "${local.internal_ingress_class_name}"
-    annotations:
-      cert-manager.io/cluster-issuer: "prod-certmanager"
-      acme.cert-manager.io/http01-edit-in-place: "true"
-      nginx.ingress.kubernetes.io/auth-type: basic
-      nginx.ingress.kubernetes.io/auth-secret: none
-    hosts:
-      - "grafana.${local.internal_domain_name}"
-    tls:
-      - secretName: "monitoring-tls"
-        hosts:
-          - "grafana.${local.internal_domain_name}"
-  persistence:
-    enabled: true
-    size: 10Gi
+  enabled: false
 
 additionalDataSources:
   - name: "loki"
@@ -46,8 +32,7 @@ additionalDataSources:
 prometheus:
   prometheusSpec:
     externalLabels:
-      environment: "${var.environment}-tfc"
-      cluster: "${var.environment}-tfc"
+      cluster: "${local.cluster_name}"
     additionalScrapeConfigs:
       - job_name: "otel_collector"
         scrape_interval: "10s"
@@ -56,10 +41,7 @@ prometheus:
             - "opentelemetry-collector.opentelemetry:9100"
             - "opentelemetry-collector.opentelemetry:8888"
     remoteWrite:
-      - url: "https://prometheus.internal.devops-dev.hyper-space.xyz/api/v1/write"
-        writeRelabelConfigs:
-          - action: "labeldrop"
-            regex: "(endpoint|service|prometheus|prometheus_replica)"
+      - url: "${local.prometheus_remote_write_endpoint}"
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -81,18 +63,57 @@ kubeScheduler:
   enabled: false
 EOF
   ]
+  depends_on = [module.eks]
+}
+
+resource "random_password" "grafana_admin_password" {
+  length           = 30
+  special          = true
+  override_special = "_%@"
+}
+
+resource "helm_release" "grafana" {
+  name             = "grafana"
+  version          = "~> 8.8.0"
+  namespace        = local.monitoring_namespace
+  chart            = "grafana"
+  repository       = "https://grafana.github.io/helm-charts"
+  create_namespace = true
+  cleanup_on_fail  = true
+  values = [<<EOF
+adminPassword: "${random_password.grafana_admin_password.result}"
+ingress:
+  enabled: true
+  ingressClassName: "${local.internal_ingress_class_name}"
+  annotations:
+    cert-manager.io/cluster-issuer: "prod-certmanager"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: none
+  hosts:
+    - "grafana.${local.internal_domain_name}"
+  tls:
+    - secretName: "monitoring-tls"
+      hosts:
+        - "grafana.${local.internal_domain_name}"
+persistence:
+  enabled: true
+  size: 10Gi
+EOF
+  ]
 
   set_sensitive {
-    name  = "grafana.adminPassword"
+    name  = "adminPassword"
     value = random_password.grafana_admin_password.result
   }
+
   depends_on = [module.eks, time_sleep.wait_for_internal_ingress]
 }
 
 resource "helm_release" "prometheus_adapter" {
   name       = "prometheus-adapter"
   version    = "~> 4.11.0"
-  namespace  = "monitoring"
+  namespace  = local.monitoring_namespace
   chart      = "prometheus-adapter"
   repository = "https://prometheus-community.github.io/helm-charts"
   values = [<<EOF
@@ -105,12 +126,6 @@ prometheus:
 EOF
   ]
   depends_on = [helm_release.kube_prometheus_stack, module.eks]
-}
-
-resource "random_password" "grafana_admin_password" {
-  length           = 30
-  special          = true
-  override_special = "_%@"
 }
 
 resource "aws_vpc_endpoint" "prometheus" {
@@ -137,7 +152,7 @@ resource "aws_security_group" "prometheus_endpoint_service" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = distinct(concat([local.vpc_module.vpc_cidr_block], jsondecode(var.prometheus_endpoint_additional_cidr_blocks)))
+    cidr_blocks = distinct(concat([local.vpc_module.vpc_cidr_block], local.prometheus_endpoint_additional_cidr_blocks))
   }
 
   egress {

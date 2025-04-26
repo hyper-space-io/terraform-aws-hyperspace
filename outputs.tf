@@ -1,7 +1,6 @@
-output "aws_region" {
-  value       = var.aws_region
-  description = "The AWS region where the VPC and all associated resources are deployed."
-}
+#######################
+###### GENERAL ########
+#######################
 
 output "tags" {
   value       = local.tags
@@ -12,6 +11,19 @@ output "environment" {
   value       = var.environment
   description = "The deployment environment (e.g., dev, staging, prod) for this infrastructure."
 }
+
+#######################
+####### AWS ###########
+#######################
+
+output "aws_region" {
+  value       = var.aws_region
+  description = "The AWS region where the VPC and all associated resources are deployed."
+}
+
+#######################
+######### TFE #########
+#######################
 
 output "tfe_workspace" {
   value       = data.tfe_workspace.current

@@ -6,7 +6,7 @@ data "terraform_remote_state" "infra" {
   backend = "remote"
 
   config = {
-    organization = var.organization
+    organization = var.tfe_organization
     workspaces = {
       name = var.infra_workspace_name
     }
@@ -22,20 +22,20 @@ data "kubernetes_storage_class" "name" {
   depends_on = [module.eks]
 }
 
-data "kubernetes_ingress_v1" "external_ingress" {
-  metadata {
-    name      = "external-ingress"
-    namespace = "ingress"
-  }
-  depends_on = [time_sleep.wait_for_external_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
-}
-
 data "kubernetes_ingress_v1" "internal_ingress" {
   metadata {
     name      = "internal-ingress"
     namespace = "ingress"
   }
   depends_on = [time_sleep.wait_for_internal_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
+}
+
+data "kubernetes_ingress_v1" "external_ingress" {
+  metadata {
+    name      = "external-ingress"
+    namespace = "ingress"
+  }
+  depends_on = [time_sleep.wait_for_external_ingress, module.eks, kubernetes_ingress_v1.nginx_ingress]
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -52,10 +52,28 @@ data "aws_ami" "fpga" {
 ### Load Balancer #####
 #######################
 
-data "aws_lb" "nlb" {
+resource "time_sleep" "wait_for_argocd_privatelink_nlb" {
+  count           = var.create_eks && var.enable_argocd ? 1 : 0
+  create_duration = "180s"
+  depends_on      = [helm_release.argocd]
+}
+
+data "aws_lb" "argocd_privatelink_nlb" {
+  count = var.create_eks && var.enable_argocd ? 1 : 0
   tags = {
-    "service.k8s.aws/stack" = "argocd/argocd-server"
-    "elbv2.k8s.aws/cluster" = module.eks.cluster_name
+    "elbv2.k8s.aws/cluster"    = module.eks.cluster_name
+    "service.k8s.aws/resource" = "LoadBalancer"
+    "service.k8s.aws/stack"    = "argocd/argocd-server"
   }
-  depends_on = [helm_release.argocd]
+
+  depends_on = [time_sleep.wait_for_argocd_privatelink_nlb]
+}
+
+#######################
+###### ArgoCD #########
+#######################
+
+data "aws_secretsmanager_secret_version" "github_secret" {
+  count     = var.create_eks && var.enable_argocd && try(local.vcs_configuration.github.enabled, false) ? 1 : 0
+  secret_id = coalesce(local.vcs_configuration.github.secret_name, "argocd/githubapp")
 }

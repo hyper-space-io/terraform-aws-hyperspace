@@ -23,7 +23,7 @@ module "eks" {
       min_size       = 1
       max_size       = var.worker_nodes_max
       desired_size   = 1
-      instance_types = jsondecode(var.worker_instance_type)
+      instance_types = local.worker_instance_type
       capacity_type  = "ON_DEMAND"
       labels         = { Environment = "${var.environment}" }
       tags           = merge(local.tags, { nodegroup = "workers", Name = "${local.cluster_name}-eks-medium" })
@@ -250,8 +250,4 @@ module "boto3_irsa" {
     }
   }
   depends_on = [module.eks]
-}
-
-output "iam_policies" {
-  value = local.iam_policies
 }

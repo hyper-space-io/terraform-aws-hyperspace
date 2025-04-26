@@ -22,9 +22,13 @@ locals {
   cluster_name = "${var.project}-${var.environment}"
 
   ##################
+  #      KMS       #
+  ##################
+  hyperspace_ami_key_alias = "arn:aws:kms:${var.aws_region}:${var.hyperspace_account_id}:alias/HYPERSPACE_AMI_KEY"
+
+  ##################
   #  IAM POLICIES  #
   ##################
-
 
   iam_policies = {
     fpga_pull = {

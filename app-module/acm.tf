@@ -1,7 +1,7 @@
 locals {
   create_acm = var.domain_name != "" ? true : false
   acm_config = {
-    external_acm = var.create_public_zone && local.public_domain_name != "" ? {
+    external_acm = (var.create_public_zone && local.public_domain_name != "") ? {
       domain_name = local.public_domain_name
       subject_alternative_names = [
         "*.${local.public_domain_name}",
@@ -17,6 +17,7 @@ locals {
     } : null
   }
 }
+
 module "acm" {
   source                    = "terraform-aws-modules/acm/aws"
   version                   = "~> 5.1.1"

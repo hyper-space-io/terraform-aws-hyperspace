@@ -49,8 +49,8 @@ resource "tfe_workspace" "app" {
   vcs_repo {
     identifier                 = "hyper-space-io/Hyperspace-terraform-module"
     branch                     = var.vcs_configuration.branch
-    oauth_token_id             = local.vcs_auth.oauth_token_id
-    github_app_installation_id = local.hyperspace_vcs_auth.github_app_installation_id
+    # oauth_token_id             = local.vcs_auth.oauth_token_id
+    # github_app_installation_id = local.hyperspace_vcs_auth.github_app_installation_id
   }
 }
 

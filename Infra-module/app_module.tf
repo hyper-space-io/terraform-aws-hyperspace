@@ -35,6 +35,7 @@ locals {
   }
   hyperspace_vcs_auth = {
     github_app_installation_id = try(jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app.secret_string).github_app_installation_id, "") != "" ? jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app.secret_string).github_app_installation_id : null
+    oauth_token_id             = try(jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app.secret_string).oauth_token_id, "") != "" ? jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app.secret_string).oauth_token_id : null
   }
 }
 
@@ -49,7 +50,7 @@ resource "tfe_workspace" "app" {
   vcs_repo {
     identifier                 = "hyper-space-io/Hyperspace-terraform-module"
     branch                     = var.vcs_configuration.branch
-    # oauth_token_id             = local.vcs_auth.oauth_token_id
+    oauth_token_id             = local.hyperspace_vcs_auth.oauth_token_id
     # github_app_installation_id = local.hyperspace_vcs_auth.github_app_installation_id
   }
 }

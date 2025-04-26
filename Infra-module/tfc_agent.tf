@@ -124,27 +124,17 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
       {
         Effect = "Allow"
         Action = [
-          "eks:*Cluster*",
-          "eks:TagResource",
-          "eks:*AccessEntry*",
-          "eks:*AccessPolic*",
-          "eks:*Nodegroup*",
-          "eks:*Addon*",
-          "eks:DescribeAddon",
-          "eks:DescribeAddonVersions",
-          "eks:CreateAddon",
-          "eks:DeleteAddon",
-          "eks:UpdateAddon",
-          "eks:ListAddons",
-          "eks:DescribeAddonConfiguration"
+          "eks:*",
+          "eks-auth:*"
         ]
-        Resource = [
-          "arn:aws:eks:*:*:cluster/*",
-          "arn:aws:eks:*:*:access-entry/*",
-          "arn:aws:eks:*:*:nodegroup/*",
-          "arn:aws:eks:*:*:addon/*",
-          "arn:aws:eks:*:*:addon-version/*"
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeAddonVersions"
         ]
+        Resource = "*"
       },
       {
         Effect = "Allow"
@@ -185,7 +175,6 @@ resource "aws_iam_role_policy" "tfc_agent_iam_policy" {
         Action = [
           "kms:TagResource",
           "kms:DescribeKey",
-          "kms:DeleteKey",
           "kms:ScheduleKeyDeletion"
         ]
         Resource = [

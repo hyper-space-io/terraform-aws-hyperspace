@@ -34,8 +34,7 @@ locals {
     github_app_installation_id = try(data.tfe_workspace.current.vcs_repo[0].github_app_installation_id, "") != "" ? data.tfe_workspace.current.vcs_repo[0].github_app_installation_id : null
   }
   hyperspace_vcs_auth = {
-    github_app_installation_id = data.aws_secretsmanager_secret_version.hyperspace_github_app_secret_version.secret_string.github_app_installation_id
-    #try(jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app_secret_version.secret_string).github_app_installation_id, "") != "" ? jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app_secret_version.secret_string).github_app_installation_id : null
+    github_app_installation_id = try(jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app_secret_version.secret_string).github_app_installation_id, "") != "" ? jsondecode(data.aws_secretsmanager_secret_version.hyperspace_github_app_secret_version.secret_string).github_app_installation_id : null
   }
 }
 
